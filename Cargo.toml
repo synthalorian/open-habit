@@ -1,0 +1,33 @@
+[workspace]
+members = ["crates/*"]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+license = "Apache-2.0"
+authors = ["synth <synth@neonstack.dev>"]
+repository = "https://github.com/synth/open_habit"
+homepage = "https://github.com/synth/open_habit#readme"
+keywords = ["habit", "gamification", "tracker", "xp", "streak"]
+categories = ["game-engines", "data-structures"]
+
+[workspace.dependencies]
+open_habit_shared = { path = "crates/shared" }
+
+tokio = { version = "1", features = ["full"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+rusqlite = { version = "0.32", features = ["bundled"] }
+ring = "0.17"
+rand = "0.8"
+thiserror = "2"
+chrono = { version = "0.4", features = ["serde"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+anyhow = "1"
+pbr = "1.0"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+warnings = "deny"
