@@ -1,0 +1,53 @@
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Dependencies
+node_modules/
+vendor/
+
+# Rust
+target/
+**/*.rlib
+**/build/
+cargo-checksum.json
+*.pdb
+Cargo.lock
+
+# Flutter/Dart
+.pub-cache/
+.pub/
+build/
+*.dill
+*.profiler
+*.recache
+*.lock
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Environment
+.env
+.env.local
+.env.production
+
+# Database
+*.sqlite3
+*.sqlite3-shm
+*.sqlite3-wal
+
+# Build artifacts
+*.apk
+*.aab
+*.ipa
+*.app
