@@ -1,0 +1,16 @@
+[package]
+name = "open_habit"
+description = "Gamification engine for open_habit"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[dependencies]
+open_habit_shared = { workspace = true }
+chrono = { workspace = true }
+rand = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+log = "0.4"
