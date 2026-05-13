@@ -1,0 +1,23 @@
+[package]
+name = "open_habit_cli"
+description = "CLI for open_habit habit tracker"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[[bin]]
+name = "open-habit"
+path = "src/main.rs"
+
+[dependencies]
+open_habit_shared = { workspace = true }
+open_habit_db = { path = "../db" }
+open_habit = { path = "../gamification" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+clap = { version = "4.4", features = ["derive"] }
+chrono = { workspace = true }
+uuid = { workspace = true }
+pbr = { workspace = true }
+tracing = { workspace = true }
