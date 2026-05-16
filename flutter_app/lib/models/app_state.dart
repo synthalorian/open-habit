@@ -14,7 +14,8 @@ class Habit {
   final String category;
   final int xp;
   bool completed;
-  bool isBad; // true = "quit" habit (tracking days without)
+  bool isBad;
+  int streakCount;
 
   Habit({
     required this.id,
@@ -23,6 +24,7 @@ class Habit {
     required this.xp,
     this.completed = false,
     this.isBad = false,
+    this.streakCount = 0,
   });
 }
 
@@ -188,69 +190,12 @@ class AppData {
   });
 
   factory AppData.initial() => AppData(
-        habits: [
-          Habit(id: '1', name: 'Meditate', category: 'Mindfulness', xp: 10),
-          Habit(id: '2', name: 'Read 30 pages', category: 'Learning', xp: 25),
-          Habit(id: '3', name: 'Run 5K', category: 'Fitness', xp: 50),
-        ],
-        challenges: const [
-          AppChallenge(
-            id: 'c1',
-            title: 'Early Bird',
-            description: 'Complete 3 habits before noon',
-            xp: 30,
-            progress: 0,
-            target: 3,
-          ),
-          AppChallenge(
-            id: 'c2',
-            title: 'Streak Keeper',
-            description: 'Maintain a 7-day streak on any habit',
-            xp: 100,
-            progress: 5,
-            target: 7,
-          ),
-          AppChallenge(
-            id: 'c3',
-            title: 'XP Hunter',
-            description: 'Earn 500 XP this week',
-            xp: 75,
-            progress: 270,
-            target: 500,
-          ),
-        ],
-        level: 5,
-        currentXP: 270,
-        neededXP: 600,
-        recommendations: const [
-          Recommendation(
-            id: 'r1',
-            name: 'Wind-down Routine',
-            description: 'Start a relaxing pre-sleep ritual 30 min before bed',
-            category: 'Mindfulness',
-            difficulty: 'Easy',
-            reason: "You've been consistent with sleep tracking",
-            icon: Icons.bedtime,
-          ),
-          Recommendation(
-            id: 'r2',
-            name: 'Daily Walk',
-            description: 'Take a 20-minute walk outside',
-            category: 'Fitness',
-            difficulty: 'Easy',
-            reason: 'Complimentary to your meditation habit',
-            icon: Icons.directions_walk,
-          ),
-          Recommendation(
-            id: 'r3',
-            name: 'Weekly Review',
-            description: 'Reflect on your progress every Sunday',
-            category: 'Productivity',
-            difficulty: 'Medium',
-            reason: 'Helps maintain long-term streaks',
-            icon: Icons.assessment,
-          ),
-        ],
+        habits: [],
+        challenges: const <AppChallenge>[],
+        level: 1,
+        currentXP: 0,
+        neededXP: 100,
+        recommendations: const <Recommendation>[],
         stats: [],
       );
 

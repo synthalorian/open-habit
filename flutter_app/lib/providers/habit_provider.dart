@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:uuid/uuid.dart';
 import '../models/app_state.dart';
-import '../models/models.dart' as api;
-import '../services/api_client.dart';
+import '../services/local_database_service.dart';
 
 // ─── Provider ─────────────────────────────────────────────────────────────
 
@@ -12,207 +12,143 @@ final habitProvider =
 // ─── Notifier ─────────────────────────────────────────────────────────────
 
 class HabitNotifier extends Notifier<AppData> {
-  final ApiClient _api = ApiClient();
-  bool _initialized = false;
+  final LocalDatabaseService _db = LocalDatabaseService();
 
   @override
   AppData build() {
-    if (!_initialized) {
-      _initialized = true;
-      state = AppData.empty();
-      _loadFromBackend();
-    }
+    state = AppData.empty();
+    _initDb();
     return state;
   }
 
-  // ─── Load ────────────────────────────────────────────────────────────────
-
-  Future<void> _loadFromBackend() async {
-    try {
-      final results = await Future.wait([
-        _api.fetchHabits(),
-        _api.fetchProgression(),
-        _api.fetchChallenges(),
-        _api.fetchStreaks(),
-        _api.fetchStats(),
-      ]);
-
-      final habitsApi = results[0] as List<api.Habit>;
-      final prog = results[1] as ProgressionResponse;
-      final challengesApi = results[2] as List<api.Challenge>;
-      final _ = results[3] as List<api.Streak>;
-      final statsApi = results[4] as List<PlayerStat>;
-
-      state = AppData(
-        habits: habitsApi.map(_toUiHabit).toList(),
-        challenges: challengesApi.isNotEmpty
-            ? challengesApi.map(_toUiChallenge).toList()
-            : state.challenges.isNotEmpty
-                ? state.challenges
-                : AppData.initial().challenges,
-        level: prog.level,
-        currentXP: prog.totalXp,
-        neededXP: prog.xpToNext > 0 ? prog.xpToNext : 100,
-        stats: statsApi,
-        recommendations: state.recommendations.isNotEmpty
-            ? state.recommendations
-            : AppData.initial().recommendations,
-        isLoading: false,
-      );
-    } catch (e) {
-      if (state.habits.isEmpty) {
-        state = AppData.initial().copyWith(isLoading: false);
-      } else {
-        state = state.copyWith(isLoading: false);
-      }
-    }
+  Future<void> _initDb() async {
+    await _db.init();
+    _db.addListener(_onDbChanged);
+    _refreshFromDb();
   }
 
-  Future<void> refresh() async {
-    await _loadFromBackend();
+  void _onDbChanged() => _refreshFromDb();
+
+  void _refreshFromDb() {
+    final db = _db;
+    state = AppData(
+      habits: db.habits.map(_toUiHabit).toList(),
+      challenges: db.challenges.map(_toUiChallenge).toList(),
+      level: db.progression.level,
+      currentXP: db.progression.totalXp,
+      neededXP: db.progression.xpToNext,
+      stats: db.stats.map((s) => PlayerStat(
+            id: s.id,
+            name: s.name,
+            value: s.xpInStat.toDouble(),
+            level: s.level,
+            xpInStat: s.xpInStat,
+            xpToNext: s.xpToNext,
+            icon: s.icon,
+            color: s.color,
+            categoryMappings: s.categoryMappings,
+          )).toList(),
+      recommendations: const [],
+      isLoading: false,
+    );
   }
+
+  Future<void> refresh() async => _refreshFromDb();
 
   // ─── Conversion helpers ──────────────────────────────────────────────────
 
-  Habit _toUiHabit(api.Habit h) {
-    final now = DateTime.now();
-    final last = h.last_completed;
-    final completed = last != null && _isSameDay(last, now);
-    final name = h.name;
-    return Habit(
-      id: h.id,
-      name: name.startsWith('🚫 ') ? name.substring(2) : name,
-      category: h.category,
-      xp: h.xp_reward,
-      completed: completed,
-      isBad: name.startsWith('🚫 '),
-    );
-  }
+  Habit _toUiHabit(HabitData h) => Habit(
+        id: h.id,
+        name: h.name,
+        category: h.category,
+        xp: h.xpReward,
+        completed: h.isCompletedToday,
+        isBad: h.isBad,
+        streakCount: h.streakCount,
+      );
 
-  AppChallenge _toUiChallenge(api.Challenge c) {
-    return AppChallenge(
-      id: c.id,
-      title: c.title,
-      description: c.description,
-      xp: c.xp_reward,
-      progress: c.progress,
-      target: c.target,
-      completed: c.status == api.ChallengeStatus.completed,
-    );
-  }
-
-  bool _isSameDay(DateTime a, DateTime b) =>
-      a.year == b.year && a.month == b.month && a.day == b.day;
+  AppChallenge _toUiChallenge(ChallengeData c) => AppChallenge(
+        id: c.id,
+        title: c.title,
+        description: c.description,
+        xp: c.xpReward,
+        progress: c.progress,
+        target: c.target,
+        completed: c.isCompleted,
+      );
 
   // ─── Mutations ───────────────────────────────────────────────────────────
 
-  /// Toggle a habit complete. Returns the [CompletionResponse] for UI feedback,
-  /// or null if the habit was already completed or the call failed.
-  Future<CompletionResponse?> toggleHabit(String id) async {
+  Future<CompletionResultData?> toggleHabit(String id) async {
     final habit = state.habits.firstWhere((h) => h.id == id);
     if (habit.completed) return null;
-
     try {
-      final response = await _api.completeHabit(id);
-      await refresh();
-      return response;
-    } catch (e) {
+      final result = await _db.completeHabit(id);
+      return result;
+    } catch (_) {
       return null;
     }
   }
 
   Future<void> addHabit(String name, String category, int xp) async {
     final difficulty = switch (xp) {
-      10 => api.Difficulty.easy,
-      25 => api.Difficulty.medium,
-      50 => api.Difficulty.hard,
-      100 => api.Difficulty.extreme,
-      _ => api.Difficulty.easy,
+      10 => 'easy',
+      25 => 'medium',
+      50 => 'hard',
+      100 => 'extreme',
+      _ => 'easy',
     };
-    final newHabit = api.Habit.create(
+    await _db.addHabit(HabitData(
+      id: const Uuid().v4(),
       name: name,
       category: category,
       difficulty: difficulty,
-      frequency: api.Frequency.daily,
-    );
-    try {
-      await _api.createHabit(newHabit);
-      await refresh();
-    } catch (e) {
-      // silent fail; user can retry
-    }
+      xpReward: xp,
+    ));
   }
 
   Future<void> addBadHabit(String name, String category, int xp) async {
-    final difficulty = api.Difficulty.easy;
-    final newHabit = api.Habit.create(
-      name: "🚫 $name",
+    await _db.addHabit(HabitData(
+      id: const Uuid().v4(),
+      name: name,
       category: category,
-      difficulty: difficulty,
-      frequency: api.Frequency.daily,
-    );
-    try {
-      await _api.createHabit(newHabit);
-      await refresh();
-    } catch (e) {
-      // silent
-    }
+      difficulty: 'easy',
+      xpReward: 10,
+      isBad: true,
+    ));
   }
 
   Future<void> deleteHabit(String id) async {
-    try {
-      await _api.deleteHabit(id);
-      await refresh();
-    } catch (e) {
-      // silent fail
-    }
+    await _db.deleteHabit(id);
   }
 
-  /// Progress a challenge by [amount] (default 1).
   Future<void> progressChallenge(String challengeId, {int amount = 1}) async {
     try {
-      await _api.progressChallenge(challengeId, amount: amount);
-      await refresh();
-    } catch (e) {
-      // silent fail
-    }
+      await _db.progressChallenge(challengeId, amount: amount);
+    } catch (_) {}
   }
 
-  void addRecommendationAsHabit(String recId) async {
+  Future<void> addRecommendationAsHabit(String recId) async {
     final data = state;
     final rec = data.recommendations.firstWhere((r) => r.id == recId);
-    final placeholder = Habit(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
+    final difficulty = switch (rec.difficulty) {
+      'Easy' => 'easy',
+      'Medium' => 'medium',
+      'Hard' => 'hard',
+      'Extreme' => 'extreme',
+      _ => 'easy',
+    };
+    await _db.addHabit(HabitData(
+      id: const Uuid().v4(),
       name: rec.name,
       category: rec.category,
-      xp: AppData.xpForDifficulty(rec.difficulty),
-      completed: false,
-    );
+      difficulty: difficulty,
+      xpReward: AppData.xpForDifficulty(rec.difficulty),
+    ));
     state = data.copyWith(
-      habits: List.from(data.habits)..add(placeholder),
       recommendations:
           List.from(data.recommendations)..removeWhere((r) => r.id == recId),
     );
-
-    try {
-      final difficulty = switch (rec.difficulty) {
-        'Easy' => api.Difficulty.easy,
-        'Medium' => api.Difficulty.medium,
-        'Hard' => api.Difficulty.hard,
-        'Extreme' => api.Difficulty.extreme,
-        _ => api.Difficulty.easy,
-      };
-      final newHabitApi = api.Habit.create(
-        name: rec.name,
-        category: rec.category,
-        difficulty: difficulty,
-        frequency: api.Frequency.daily,
-      );
-      await _api.createHabit(newHabitApi);
-      await refresh();
-    } catch (e) {
-      await refresh();
-    }
   }
 
   void dismissRecommendation(String recId) {
@@ -221,5 +157,31 @@ class HabitNotifier extends Notifier<AppData> {
       recommendations:
           List.from(data.recommendations)..removeWhere((r) => r.id == recId),
     );
+  }
+
+  // ─── Stats ────────────────────────────────────────────────────────────────
+
+  Future<void> addStat(String name, String icon, String color,
+      {String categoryMappings = '[]'}) async {
+    await _db.addStat(StatData(
+      name: name,
+      icon: icon,
+      color: color,
+      categoryMappings: categoryMappings,
+    ));
+  }
+
+  Future<void> updateStat(StatData stat) async {
+    await _db.updateStat(stat);
+  }
+
+  Future<bool> deleteStat(String id) async {
+    return await _db.deleteStat(id);
+  }
+
+  // ─── Reset ────────────────────────────────────────────────────────────────
+
+  Future<void> resetAllData() async {
+    await _db.resetAllData();
   }
 }

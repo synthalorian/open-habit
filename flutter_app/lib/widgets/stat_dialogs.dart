@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/app_state.dart';
 import '../models/habit_categories.dart';
-import '../services/api_client.dart';
+import '../services/local_database_service.dart';
 
 /// Dialog for customizing a stat (rename, change icon, change color, remap categories).
 class StatCustomizeDialog extends StatefulWidget {
@@ -221,19 +221,30 @@ class _StatCustomizeDialogState extends State<StatCustomizeDialog> {
   Future<void> _save() async {
     setState(() => _saving = true);
     try {
-      final api = ApiClient();
-      await api.updateStat(widget.stat.id, {
-        'name': _nameCtrl.text.trim(),
-        'icon': _icon,
-        'color': _color,
-        'category_mappings': _mappedCategories.toString(),
-      });
+      final db = LocalDatabaseService();
+      await db.init();
+      final stat = PlayerStat(
+        id: '',
+        name: _nameCtrl.text.trim(),
+        value: 1.0,
+        level: 1,
+        xpInStat: 0,
+        xpToNext: 120,
+        icon: _icon,
+        color: _color,
+        categoryMappings: _mappedCategories.toString(),
+      );
+      await db.addStat(StatData(
+        name: stat.name,
+        icon: stat.icon,
+        color: stat.color,
+        categoryMappings: stat.categoryMappings,
+      ));
       if (context.mounted) Navigator.pop(context, true);
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to save: $e')),
-        );
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -412,10 +423,10 @@ class _StatCreateDialogState extends State<StatCreateDialog> {
     if (_nameCtrl.text.trim().isEmpty) return;
     setState(() => _saving = true);
     try {
-      final api = ApiClient();
-      final now = DateTime.now();
+      final db = LocalDatabaseService();
+      await db.init();
       final stat = PlayerStat(
-        id: '', // server assigns
+        id: '',
         name: _nameCtrl.text.trim(),
         value: 1.0,
         level: 1,
@@ -425,7 +436,12 @@ class _StatCreateDialogState extends State<StatCreateDialog> {
         color: _color,
         categoryMappings: _mappedCategories.toString(),
       );
-      await api.createStat(stat);
+      await db.addStat(StatData(
+        name: stat.name,
+        icon: stat.icon,
+        color: stat.color,
+        categoryMappings: stat.categoryMappings,
+      ));
       if (context.mounted) Navigator.pop(context, true);
     } catch (e) {
       if (context.mounted) {

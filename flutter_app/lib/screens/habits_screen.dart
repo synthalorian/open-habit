@@ -97,7 +97,6 @@ class HabitsScreen extends ConsumerWidget {
                           );
                         }
                       },
-                      showDelete: true,
                       onDelete: () =>
                           notifier.deleteHabit(data.habits[i].id),
                     ),
@@ -141,7 +140,7 @@ class HabitsScreen extends ConsumerWidget {
                   const Text('Build Habit'),
                   Switch(
                     value: isBad,
-                    activeColor: const Color(0xFFFF007F),
+                    activeThumbColor: const Color(0xFFFF007F),
                     onChanged: (v) =>
                         setDialogState(() => isBad = v),
                   ),
@@ -168,7 +167,7 @@ class HabitsScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                value: category,
+                initialValue: category,
                 isExpanded: true,
                 decoration: const InputDecoration(
                   labelText: 'Category',
@@ -191,7 +190,7 @@ class HabitsScreen extends ConsumerWidget {
               if (!isBad) ...[
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
-                  value: difficulty,
+                  initialValue: difficulty,
                   isExpanded: true,
                   decoration: const InputDecoration(
                     labelText: 'Difficulty',
