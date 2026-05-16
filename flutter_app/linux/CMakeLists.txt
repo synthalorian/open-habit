@@ -126,3 +126,8 @@ if(NOT CMAKE_BUILD_TYPE MATCHES "Debug")
   install(FILES "${AOT_LIBRARY}" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
     COMPONENT Runtime)
 endif()
+
+# Install app icons (freedesktop.org hierarchy)
+install(DIRECTORY "${CMAKE_SOURCE_DIR}/linux/assets/icons/"
+  DESTINATION "${CMAKE_INSTALL_PREFIX}/share/icons"
+  COMPONENT Runtime)

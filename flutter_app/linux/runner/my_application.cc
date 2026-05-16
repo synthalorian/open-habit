@@ -75,6 +75,36 @@ static void my_application_activate(GApplication* application) {
 
   fl_register_plugins(FL_PLUGIN_REGISTRY(view));
 
+  // Set the app icon from the bundled assets
+  GError* error = nullptr;
+  gchar* icon_path = g_build_filename(
+      g_get_data_dir(), "open_habit", "icons", "hicolor", "256x256",
+      "apps", "com.synthwave.open_habit.png", nullptr);
+  if (!g_file_test(icon_path, G_FILE_TEST_EXISTS)) {
+    // Fallback: try XDG data directory
+    g_free(icon_path);
+    icon_path = g_build_filename(
+        g_get_home_dir(), ".local", "share", "icons", "hicolor",
+        "256x256", "apps", "com.synthwave.open_habit.png", nullptr);
+  }
+  if (!g_file_test(icon_path, G_FILE_TEST_EXISTS)) {
+    g_free(icon_path);
+    icon_path = g_build_filename(
+        g_get_current_dir(), "assets", "icons", "hicolor", "256x256",
+        "apps", "com.synthwave.open_habit.png", nullptr);
+  }
+  if (g_file_test(icon_path, G_FILE_TEST_EXISTS)) {
+    GtkIconTheme* theme = gtk_icon_theme_get_default();
+    GdkPixbuf* pixbuf = gdk_pixbuf_new_from_file(icon_path, &error);
+    if (pixbuf != nullptr) {
+      gtk_window_set_icon(GTK_WINDOW(window), pixbuf);
+      g_object_unref(pixbuf);
+    } else {
+      g_clear_error(&error);
+    }
+  }
+  g_free(icon_path);
+
   gtk_widget_grab_focus(GTK_WIDGET(view));
 }
 

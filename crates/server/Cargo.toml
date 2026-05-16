@@ -2,7 +2,7 @@
 name = "open_habit_server"
 description = "REST API server for open_habit"
 version.workspace = true
-edition.workspace = true
+edition = "2024"
 license.workspace = true
 authors.workspace = true
 
@@ -11,6 +11,7 @@ name = "open-habit-server"
 path = "src/main.rs"
 
 [dependencies]
+uuid = { workspace = true }
 open_habit_shared = { workspace = true }
 open_habit_db = { path = "../db" }
 open_habit = { path = "../gamification" }

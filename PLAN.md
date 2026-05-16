@@ -62,6 +62,11 @@ A habit tracker powered by a Rust gamification engine. XP, streaks, achievements
 
 **Status: COMPLETE** — All 32 tests pass across shared, gamification, db, and cli crates.
 
+**Post-completion fixes (2026-05-14):**
+- Fixed `ChallengeEngine::active_challenges()`: was calling recursive non-existent method; now correctly filters `self.challenges.iter()` by `ChallengeStatus::Active`.
+- Added `GamificationEngine::active_challenges()` delegator to expose active challenges for persistence.
+- Added `POST /challenges/{id}/progress` server endpoint + DB `SaveChallenges` command to persist challenge state after progression.
+
 ---
 
 ### Phase 2 — Procedural Challenge Engine
