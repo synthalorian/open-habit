@@ -1,53 +1,33 @@
-# Logs
-logs/
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
+# Open Habit .gitignore
 
-# Dependencies
-node_modules/
-vendor/
+# APK builds
+*.apk
 
-# Rust
-target/
-**/*.rlib
-**/build/
-cargo-checksum.json
-*.pdb
-Cargo.lock
-
-# Flutter/Dart
-.pub-cache/
-.pub/
-build/
-*.dill
-*.profiler
-*.recache
-*.lock
-
-# IDE
+# IDE files
 .idea/
 .vscode/
 *.swp
 *.swo
-*~
-.DS_Store
-
-# Environment
-.env
-.env.local
-.env.production
-
-# Database
-*.sqlite3
-*.sqlite3-shm
-*.sqlite3-wal
 
 # Build artifacts
-*.apk
-*.aab
-*.ipa
-*.app
+flutter_app/build/
+flutter_app/.dart_tool/
+flutter_app/.flutter-plugins
+flutter_app/.flutter-plugins-dependencies
+flutter_app/android/.gradle/
+flutter_app/android/local.properties
+flutter_app/ios/Pods/
+flutter_app/ios/.symlinks/
+
+# Rust build
+target/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Database
+*.db
+
+# Large generated assets
+**/*.generated.*

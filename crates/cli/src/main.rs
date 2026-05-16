@@ -84,9 +84,20 @@ fn main() {
 
     match cli.command {
         Commands::List { all } => cmd_list(&cli.database, all),
-        Commands::Add { name, category, difficulty, frequency, description } => {
-            cmd_add(&cli.database, &name, &category, &difficulty, &frequency, &description)
-        }
+        Commands::Add {
+            name,
+            category,
+            difficulty,
+            frequency,
+            description,
+        } => cmd_create_habit(
+            &cli.database,
+            &name,
+            &category,
+            &difficulty,
+            &frequency,
+            &description,
+        ),
         Commands::Complete { id } => cmd_complete(&cli.database, &id),
         Commands::Progress => cmd_progress(&cli.database),
         Commands::Achievements => cmd_achievements(&cli.database),
@@ -108,7 +119,8 @@ fn cmd_list(path: &PathBuf, all: bool) {
     let habits = if all {
         db.list_habits(None).expect("Failed to list habits")
     } else {
-        db.list_habits(Some("active")).expect("Failed to list habits")
+        db.list_habits(Some("active"))
+            .expect("Failed to list habits")
     };
 
     if habits.is_empty() {
@@ -130,7 +142,8 @@ fn cmd_list(path: &PathBuf, all: bool) {
             Difficulty::Hard => "[hard]",
             Difficulty::Extreme => "[extreme]",
         };
-        let last = habit.last_completed
+        let last = habit
+            .last_completed
             .map(|d| d.format("%Y-%m-%d").to_string())
             .unwrap_or("Never".to_string());
 
@@ -150,13 +163,13 @@ fn cmd_list(path: &PathBuf, all: bool) {
     }
 }
 
-fn cmd_add(
+fn cmd_create_habit(
     path: &PathBuf,
     name: &str,
     category: &str,
     difficulty: &str,
     frequency: &str,
-    description: &Option<String>,
+    _description: &Option<String>,
 ) {
     let diff = match difficulty.to_lowercase().as_str() {
         "easy" => Difficulty::Easy,
@@ -217,18 +230,18 @@ fn cmd_complete(path: &PathBuf, id_str: &str) {
     let today = Utc::now().date_naive();
 
     // Complete in DB
-    let xp = db.complete_habit(&id, today).expect("Failed to complete habit");
+    let xp = db
+        .complete_habit(&id, today)
+        .expect("Failed to complete habit");
 
     // Gamify
     let result = engine.complete_habit(id, today, habit.difficulty);
 
     // Record XP
-    db.record_xp(xp, "HabitCompletion", Some(&id.to_string()), today).ok();
+    db.record_xp(xp, "HabitCompletion", Some(&id.to_string()), today)
+        .ok();
 
-    println!(
-        "Completed: {} | +{} XP",
-        habit.name, result.base_xp
-    );
+    println!("Completed: {} | +{} XP", habit.name, result.base_xp);
 
     if result.bonus_xp > 0 {
         println!("Streak bonus: +{} XP", result.bonus_xp);
@@ -264,7 +277,10 @@ fn cmd_progress(path: &PathBuf) {
 
     println!("Player Progress");
     println!("─────────────────────────────────────────────");
-    println!("Level: {} ({}/{})", player.level, player.total_xp, player.xp_to_next);
+    println!(
+        "Level: {} ({}/{})",
+        player.level, player.total_xp, player.xp_to_next
+    );
     println!(
         "Progression: {:.1}% to next level",
         (player.total_xp as f64 / player.xp_to_next as f64) * 100.0
@@ -272,13 +288,16 @@ fn cmd_progress(path: &PathBuf) {
     println!("Streaks: {}", engine.active_streaks().len());
 
     if let Some(db_prog) = progression {
-        println!("Database: Level {} | {} XP", db_prog.level, db_prog.total_xp);
+        println!(
+            "Database: Level {} | {} XP",
+            db_prog.level, db_prog.total_xp
+        );
     }
 }
 
 fn cmd_achievements(path: &PathBuf) {
     let db = open_db(path);
-    let engine = GamificationEngine::new();
+    let _engine = GamificationEngine::new();
     let achievements = db.list_achievements().expect("Failed to list achievements");
 
     println!("Achievements");
@@ -316,10 +335,7 @@ fn cmd_streaks() {
     println!("─────────────────────────────────────────────");
 
     for streak in streaks {
-        println!(
-            "habit {}: {} days",
-            streak.habit_id, streak.count
-        );
+        println!("habit {}: {} days", streak.habit_id, streak.count);
     }
 }
 
@@ -343,8 +359,12 @@ fn cmd_challenges(path: &PathBuf) {
         };
         println!(
             " {} {} | {} | {}/{} | XP: {}",
-            status_icon, challenge.title, challenge.description,
-            challenge.progress, challenge.target, challenge.xp_reward
+            status_icon,
+            challenge.title,
+            challenge.description,
+            challenge.progress,
+            challenge.target,
+            challenge.xp_reward
         );
     }
 }

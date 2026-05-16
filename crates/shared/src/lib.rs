@@ -51,7 +51,9 @@ pub enum Frequency {
     Daily,
     Weekly,
     #[serde(rename = "custom")]
-    Custom { days: Vec<u8> }, // 0=Sun .. 6=Sat
+    Custom {
+        days: Vec<u8>,
+    }, // 0=Sun .. 6=Sat
     #[serde(rename = "once")]
     Once,
 }
@@ -132,7 +134,12 @@ impl Habit {
     /// XP points per difficulty.
     pub const XP_RATES: [u32; 4] = [10, 25, 50, 100];
 
-    pub fn new(name: impl Into<String>, category: impl Into<String>, difficulty: Difficulty, frequency: Frequency) -> Self {
+    pub fn new(
+        name: impl Into<String>,
+        category: impl Into<String>,
+        difficulty: Difficulty,
+        frequency: Frequency,
+    ) -> Self {
         let xp_reward = Self::XP_RATES[difficulty as usize] as u32;
         Self {
             id: Uuid::new_v4(),
@@ -227,7 +234,12 @@ pub enum AchievementCategory {
 }
 
 impl Achievement {
-    pub fn new(title: impl Into<String>, description: impl Into<String>, xp_reward: u32, category: AchievementCategory) -> Self {
+    pub fn new(
+        title: impl Into<String>,
+        description: impl Into<String>,
+        xp_reward: u32,
+        category: AchievementCategory,
+    ) -> Self {
         Self {
             id: Uuid::new_v4(),
             title: title.into(),
@@ -325,6 +337,147 @@ impl PlayerProgression {
     }
 }
 
+// ─── Player Stats ────────────────────────────────────────────────────────
+
+/// An RPG-style stat that levels up as you complete habits in specific categories.
+/// Users can customize names, icons, and which habit categories feed into each stat.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct PlayerStat {
+    pub id: uuid::Uuid,
+    pub name: String,
+    pub value: f64,
+    pub level: u32,
+    pub xp_in_stat: u32,
+    pub xp_to_next: u32,
+    pub icon: String,    // emoji or unicode codepoint reference
+    pub color: String,   // hex color like "#FF9B71"
+    /// JSON array of habit category strings that feed into this stat
+    pub category_mappings: String,
+    pub created_at: chrono::NaiveDate,
+}
+
+impl PlayerStat {
+    /// XP thresholds for each stat level (same scaling as player level)
+    pub fn xp_for_level(level: u32) -> u32 {
+        PlayerProgression::xp_threshold(level + 1)
+    }
+
+    /// Add stat XP and return whether we leveled up
+    pub fn add_xp(&mut self, amount: u32) -> bool {
+        self.xp_in_stat += amount;
+        let mut next_threshold = Self::xp_for_level(self.level + 1);
+        let mut leveled = false;
+        while self.xp_in_stat >= next_threshold && next_threshold > 0 {
+            self.xp_in_stat -= next_threshold;
+            self.level += 1;
+            self.value = self.level as f64;
+            leveled = true;
+            next_threshold = Self::xp_for_level(self.level + 1);
+        }
+        self.xp_to_next = if next_threshold > self.xp_in_stat {
+            next_threshold - self.xp_in_stat
+        } else {
+            0
+        };
+        leveled
+    }
+}
+
+/// Default stat definitions with their RPG archetype mappings
+pub mod default_stats {
+    use super::*;
+    use chrono::Utc;
+
+    pub fn defaults() -> Vec<PlayerStat> {
+        vec![
+            PlayerStat {
+                id: uuid::Uuid::new_v4(),
+                name: "Strength".into(),
+                value: 1.0,
+                level: 1,
+                xp_in_stat: 0,
+                xp_to_next: PlayerStat::xp_for_level(2),
+                icon: "💪".into(),
+                color: "#FF5500".into(),
+                category_mappings: r#"["Fitness","Nutrition"]"#.into(),
+                created_at: Utc::now().date_naive(),
+            },
+            PlayerStat {
+                id: uuid::Uuid::new_v4(),
+                name: "Intelligence".into(),
+                value: 1.0,
+                level: 1,
+                xp_in_stat: 0,
+                xp_to_next: PlayerStat::xp_for_level(2),
+                icon: "🧠".into(),
+                color: "#00E5FF".into(),
+                category_mappings: r#"["Learning","Creative"]"#.into(),
+                created_at: Utc::now().date_naive(),
+            },
+            PlayerStat {
+                id: uuid::Uuid::new_v4(),
+                name: "Vitality".into(),
+                value: 1.0,
+                level: 1,
+                xp_in_stat: 0,
+                xp_to_next: PlayerStat::xp_for_level(2),
+                icon: "❤️".into(),
+                color: "#FF2D95".into(),
+                category_mappings: r#"["Mindfulness","Nutrition"]"#.into(),
+                created_at: Utc::now().date_naive(),
+            },
+            PlayerStat {
+                id: uuid::Uuid::new_v4(),
+                name: "Agility".into(),
+                value: 1.0,
+                level: 1,
+                xp_in_stat: 0,
+                xp_to_next: PlayerStat::xp_for_level(2),
+                icon: "⚡".into(),
+                color: "#B026FF".into(),
+                category_mappings: r#"["Fitness","Productivity"]"#.into(),
+                created_at: Utc::now().date_naive(),
+            },
+            PlayerStat {
+                id: uuid::Uuid::new_v4(),
+                name: "Wisdom".into(),
+                value: 1.0,
+                level: 1,
+                xp_in_stat: 0,
+                xp_to_next: PlayerStat::xp_for_level(2),
+                icon: "🔮".into(),
+                color: "#FF9B71".into(),
+                category_mappings: r#"["Mindfulness","Learning"]"#.into(),
+                created_at: Utc::now().date_naive(),
+            },
+            PlayerStat {
+                id: uuid::Uuid::new_v4(),
+                name: "Charisma".into(),
+                value: 1.0,
+                level: 1,
+                xp_in_stat: 0,
+                xp_to_next: PlayerStat::xp_for_level(2),
+                icon: "🎭".into(),
+                color: "#FFDD00".into(),
+                category_mappings: r#"["Social","Creative"]"#.into(),
+                created_at: Utc::now().date_naive(),
+            },
+            PlayerStat {
+                id: uuid::Uuid::new_v4(),
+                name: "Luck".into(),
+                value: 1.0,
+                level: 1,
+                xp_in_stat: 0,
+                xp_to_next: PlayerStat::xp_for_level(2),
+                icon: "🍀".into(),
+                color: "#00FF88".into(),
+                category_mappings: r#"["Finance","General"]"#.into(),
+                created_at: Utc::now().date_naive(),
+            },
+        ]
+    }
+}
+
 // ─── Challenge ────────────────────────────────────────────────────────
 
 /// A procedural challenge that gives bonus XP.
@@ -338,12 +491,28 @@ pub struct Challenge {
     pub progress: u32,
     pub target: u32,
     pub xp_reward: u32,
+    pub category: String,
     pub expires_at: Option<NaiveDate>,
     pub completed_at: Option<NaiveDate>,
 }
 
 impl Challenge {
-    pub fn new(title: impl Into<String>, description: impl Into<String>, challenge_type: ChallengeType, xp_reward: u32) -> Self {
+    pub fn new(
+        title: impl Into<String>,
+        description: impl Into<String>,
+        challenge_type: ChallengeType,
+        xp_reward: u32,
+    ) -> Self {
+        Self::with_category(title, description, challenge_type, xp_reward, "general".to_string())
+    }
+
+    pub fn with_category(
+        title: impl Into<String>,
+        description: impl Into<String>,
+        challenge_type: ChallengeType,
+        xp_reward: u32,
+        category: String,
+    ) -> Self {
         Self {
             id: Uuid::new_v4(),
             title: title.into(),
@@ -358,6 +527,7 @@ impl Challenge {
                 ChallengeType::CategoryBurst(_) => 1,
             },
             xp_reward,
+            category,
             expires_at: None,
             completed_at: None,
         }
@@ -449,12 +619,12 @@ pub mod achievements {
 pub mod streak_bonuses {
     /// XP bonus at each milestone.
     pub const BONUS_MILESTONES: [(u32, u32); 6] = [
-        (3, 5),   // 3-day streak → +5 XP
-        (7, 15),  // 7-day streak → +15 XP
-        (14, 30), // 14-day streak → +30 XP
-        (30, 75), // 30-day streak → +75 XP
-        (60, 150),// 60-day streak → +150 XP
-        (100, 300),// 100-day streak → +300 XP
+        (3, 5),     // 3-day streak → +5 XP
+        (7, 15),    // 7-day streak → +15 XP
+        (14, 30),   // 14-day streak → +30 XP
+        (30, 75),   // 30-day streak → +75 XP
+        (60, 150),  // 60-day streak → +150 XP
+        (100, 300), // 100-day streak → +300 XP
     ];
 }
 
@@ -466,7 +636,12 @@ mod tests {
 
     #[test]
     fn test_habit_creation() {
-        let habit = Habit::new("Meditate", "Mindfulness", Difficulty::Easy, Frequency::Daily);
+        let habit = Habit::new(
+            "Meditate",
+            "Mindfulness",
+            Difficulty::Easy,
+            Frequency::Daily,
+        );
         assert_eq!(habit.name, "Meditate");
         assert_eq!(habit.category, "Mindfulness");
         assert_eq!(habit.xp_reward, 10);
@@ -511,11 +686,11 @@ mod tests {
         };
         // Level 1 → level 2 threshold is 100 XP
         assert_eq!(PlayerProgression::xp_threshold(2), 120);
-        
+
         player.total_xp = 100;
         player.level = 1;
         player.xp_to_next = 20;
-        
+
         let leveled = player.add_xp(30);
         assert_eq!(leveled, vec![2]);
         assert_eq!(player.level, 2);

@@ -6,9 +6,11 @@
 
 use chrono::{NaiveDate, Utc};
 use open_habit_shared::*;
-use rusqlite::{params, Connection, Row};
+use rusqlite::{Connection, Row, params};
 use std::path::Path;
 use uuid::Uuid;
+
+mod player_stats;
 
 // ─── Database errors ──────────────────────────────────────────────────
 
@@ -30,17 +32,73 @@ use std::sync::mpsc;
 use std::thread;
 
 pub enum DbCommand {
-    ListHabits { status: Option<String>, respond: mpsc::Sender<DBResult<Vec<Habit>>> },
-    GetHabit { id: String, respond: mpsc::Sender<DBResult<Option<Habit>>> },
-    CreateHabit { habit: Habit, respond: mpsc::Sender<DBResult<()>> },
-    CompleteHabit { id: String, respond: mpsc::Sender<DBResult<u32>> },
-    GetProgression { respond: mpsc::Sender<DBResult<PlayerProgression>> },
-    RecordXp { xp: u32, respond: mpsc::Sender<DBResult<()>> },
-    ListAchievements { respond: mpsc::Sender<DBResult<Vec<Achievement>>> },
-    ListChallenges { respond: mpsc::Sender<DBResult<Vec<Challenge>>> },
-    ListStreaks { respond: mpsc::Sender<DBResult<Vec<Streak>>> },
-    UpdateHabit { id: String, name: Option<String>, description: Option<String>, status: Option<String>, respond: mpsc::Sender<DBResult<()>> },
-    DeleteHabit { id: String, respond: mpsc::Sender<DBResult<()>> },
+    ListHabits {
+        status: Option<String>,
+        respond: mpsc::Sender<DBResult<Vec<Habit>>>,
+    },
+    GetHabit {
+        id: String,
+        respond: mpsc::Sender<DBResult<Option<Habit>>>,
+    },
+    CreateHabit {
+        habit: Habit,
+        respond: mpsc::Sender<DBResult<()>>,
+    },
+    CompleteHabit {
+        id: String,
+        respond: mpsc::Sender<DBResult<u32>>,
+    },
+    GetProgression {
+        respond: mpsc::Sender<DBResult<PlayerProgression>>,
+    },
+    RecordXp {
+        xp: u32,
+        respond: mpsc::Sender<DBResult<()>>,
+    },
+    ListAchievements {
+        respond: mpsc::Sender<DBResult<Vec<Achievement>>>,
+    },
+    ListChallenges {
+        respond: mpsc::Sender<DBResult<Vec<Challenge>>>,
+    },
+    ListStreaks {
+        respond: mpsc::Sender<DBResult<Vec<Streak>>>,
+    },
+    UpdateHabit {
+        id: String,
+        name: Option<String>,
+        description: Option<String>,
+        status: Option<String>,
+        respond: mpsc::Sender<DBResult<()>>,
+    },
+    DeleteHabit {
+        id: String,
+        respond: mpsc::Sender<DBResult<()>>,
+    },
+    SaveStreak {
+        streak: Streak,
+        respond: mpsc::Sender<DBResult<()>>,
+    },
+    SaveChallenges {
+        challenges: Vec<Challenge>,
+        respond: mpsc::Sender<DBResult<()>>,
+    },
+    ListStats {
+        respond: mpsc::Sender<DBResult<Vec<PlayerStat>>>,
+    },
+    UpsertStat {
+        stat: PlayerStat,
+        respond: mpsc::Sender<DBResult<()>>,
+    },
+    DeleteStat {
+        id: String,
+        respond: mpsc::Sender<DBResult<()>>,
+    },
+    AwardStatXp {
+        habit_category: String,
+        xp_amount: u32,
+        respond: mpsc::Sender<DBResult<Vec<PlayerStat>>>,
+    },
 }
 
 pub struct DatabaseClient {
@@ -66,23 +124,27 @@ impl DatabaseClient {
                     }
                     DbCommand::GetHabit { id, respond } => {
                         let uuid = Uuid::parse_str(&id).map_err(|e| DBError::Parse(e.to_string()));
-                        respond.send(match uuid {
-                            Ok(uuid) => db.get_habit(&uuid),
-                            Err(e) => Err(e),
-                        }).ok();
+                        respond
+                            .send(match uuid {
+                                Ok(uuid) => db.get_habit(&uuid),
+                                Err(e) => Err(e),
+                            })
+                            .ok();
                     }
                     DbCommand::CreateHabit { habit, respond } => {
                         respond.send(db.create_habit(&habit)).ok();
                     }
                     DbCommand::CompleteHabit { id, respond } => {
                         let uuid = Uuid::parse_str(&id).map_err(|e| DBError::Parse(e.to_string()));
-                        respond.send(match uuid {
-                            Ok(uuid) => {
-                                let today = Utc::now().date_naive();
-                                db.complete_habit(&uuid, today)
-                            }
-                            Err(e) => Err(e),
-                        }).ok();
+                        respond
+                            .send(match uuid {
+                                Ok(uuid) => {
+                                    let today = Utc::now().date_naive();
+                                    db.complete_habit(&uuid, today)
+                                }
+                                Err(e) => Err(e),
+                            })
+                            .ok();
                     }
                     DbCommand::GetProgression { respond } => {
                         respond.send(db.get_progression()).ok();
@@ -100,19 +162,52 @@ impl DatabaseClient {
                     DbCommand::ListStreaks { respond } => {
                         respond.send(db.list_all_streaks()).ok();
                     }
-                    DbCommand::UpdateHabit { id, name, description, status, respond } => {
+                    DbCommand::UpdateHabit {
+                        id,
+                        name,
+                        description,
+                        status,
+                        respond,
+                    } => {
                         let uuid = Uuid::parse_str(&id).map_err(|e| DBError::Parse(e.to_string()));
-                        respond.send(match uuid {
-                            Ok(uuid) => db.update_habit(&uuid, name.as_deref(), description.as_deref(), status.as_deref()),
-                            Err(e) => Err(e),
-                        }).ok();
+                        respond
+                            .send(match uuid {
+                                Ok(uuid) => db.update_habit(
+                                    &uuid,
+                                    name.as_deref(),
+                                    description.as_deref(),
+                                    status.as_deref(),
+                                ),
+                                Err(e) => Err(e),
+                            })
+                            .ok();
                     }
                     DbCommand::DeleteHabit { id, respond } => {
                         let uuid = Uuid::parse_str(&id).map_err(|e| DBError::Parse(e.to_string()));
-                        respond.send(match uuid {
-                            Ok(uuid) => db.delete_habit(&uuid),
-                            Err(e) => Err(e),
-                        }).ok();
+                        respond
+                            .send(match uuid {
+                                Ok(uuid) => db.delete_habit(&uuid),
+                                Err(e) => Err(e),
+                            })
+                            .ok();
+                    }
+                    DbCommand::SaveStreak { streak, respond } => {
+                        respond.send(db.save_streak(&streak)).ok();
+                    }
+                    DbCommand::SaveChallenges { challenges, respond } => {
+                        respond.send(db.save_challenges(&challenges)).ok();
+                    }
+                    DbCommand::ListStats { respond } => {
+                        respond.send(db.list_stats()).ok();
+                    }
+                    DbCommand::UpsertStat { stat, respond } => {
+                        respond.send(db.upsert_stat(&stat)).ok();
+                    }
+                    DbCommand::DeleteStat { id, respond } => {
+                        respond.send(db.delete_stat(&id)).ok();
+                    }
+                    DbCommand::AwardStatXp { habit_category, xp_amount, respond } => {
+                        respond.send(db.award_stat_xp(&habit_category, xp_amount)).ok();
                     }
                 }
             }
@@ -121,6 +216,8 @@ impl DatabaseClient {
         Ok(Self { sender })
     }
 
+    #[allow(dead_code)]
+    #[allow(dead_code, unused_variables)]
     fn send<T, F>(&self, cmd: DbCommand, f: F) -> T
     where
         F: FnOnce(Option<DBResult<T>>) -> T,
@@ -134,7 +231,9 @@ impl DatabaseClient {
 
     pub fn list_habits(&self, status: Option<String>) -> DBResult<Vec<Habit>> {
         let (respond, recv) = mpsc::channel();
-        self.sender.send(DbCommand::ListHabits { status, respond }).ok();
+        self.sender
+            .send(DbCommand::ListHabits { status, respond })
+            .ok();
         recv.recv().unwrap()
     }
 
@@ -146,13 +245,17 @@ impl DatabaseClient {
 
     pub fn create_habit(&self, habit: Habit) -> DBResult<()> {
         let (respond, recv) = mpsc::channel();
-        self.sender.send(DbCommand::CreateHabit { habit, respond }).ok();
+        self.sender
+            .send(DbCommand::CreateHabit { habit, respond })
+            .ok();
         recv.recv().unwrap()
     }
 
     pub fn complete_habit(&self, id: String) -> DBResult<u32> {
         let (respond, recv) = mpsc::channel();
-        self.sender.send(DbCommand::CompleteHabit { id, respond }).ok();
+        self.sender
+            .send(DbCommand::CompleteHabit { id, respond })
+            .ok();
         recv.recv().unwrap()
     }
 
@@ -170,7 +273,9 @@ impl DatabaseClient {
 
     pub fn list_achievements(&self) -> DBResult<Vec<Achievement>> {
         let (respond, recv) = mpsc::channel();
-        self.sender.send(DbCommand::ListAchievements { respond }).ok();
+        self.sender
+            .send(DbCommand::ListAchievements { respond })
+            .ok();
         recv.recv().unwrap()
     }
 
@@ -186,15 +291,84 @@ impl DatabaseClient {
         recv.recv().unwrap()
     }
 
-    pub fn update_habit(&self, id: String, name: Option<String>, description: Option<String>, status: Option<String>) -> DBResult<()> {
+    pub fn update_habit(
+        &self,
+        id: String,
+        name: Option<String>,
+        description: Option<String>,
+        status: Option<String>,
+    ) -> DBResult<()> {
         let (respond, recv) = mpsc::channel();
-        self.sender.send(DbCommand::UpdateHabit { id, name, description, status, respond }).ok();
+        self.sender
+            .send(DbCommand::UpdateHabit {
+                id,
+                name,
+                description,
+                status,
+                respond,
+            })
+            .ok();
         recv.recv().unwrap()
     }
 
     pub fn delete_habit(&self, id: String) -> DBResult<()> {
         let (respond, recv) = mpsc::channel();
-        self.sender.send(DbCommand::DeleteHabit { id, respond }).ok();
+        self.sender
+            .send(DbCommand::DeleteHabit { id, respond })
+            .ok();
+        recv.recv().unwrap()
+    }
+
+    /// Persist a streak record (insert or update).
+    pub fn save_streak(&self, streak: &Streak) -> DBResult<()> {
+        let streak = streak.clone();
+        let (respond, recv) = mpsc::channel();
+        self.sender
+            .send(DbCommand::SaveStreak { streak, respond })
+            .ok();
+        recv.recv().unwrap()
+    }
+
+    pub fn save_challenges(&self, challenges: &[Challenge]) -> DBResult<()> {
+        let challenges = challenges.to_vec();
+        let (respond, recv) = mpsc::channel();
+        self.sender
+            .send(DbCommand::SaveChallenges { challenges, respond })
+            .ok();
+        recv.recv().unwrap()
+    }
+
+    pub fn list_stats(&self) -> DBResult<Vec<PlayerStat>> {
+        let (respond, recv) = mpsc::channel();
+        self.sender
+            .send(DbCommand::ListStats { respond })
+            .ok();
+        recv.recv().unwrap()
+    }
+
+    pub fn upsert_stat(&self, stat: &PlayerStat) -> DBResult<()> {
+        let stat = stat.clone();
+        let (respond, recv) = mpsc::channel();
+        self.sender
+            .send(DbCommand::UpsertStat { stat, respond })
+            .ok();
+        recv.recv().unwrap()
+    }
+
+    pub fn delete_stat(&self, id: String) -> DBResult<()> {
+        let (respond, recv) = mpsc::channel();
+        self.sender
+            .send(DbCommand::DeleteStat { id, respond })
+            .ok();
+        recv.recv().unwrap()
+    }
+
+    pub fn award_stat_xp(&self, habit_category: &str, xp_amount: u32) -> DBResult<Vec<PlayerStat>> {
+        let habit_category = habit_category.to_string();
+        let (respond, recv) = mpsc::channel();
+        self.sender
+            .send(DbCommand::AwardStatXp { habit_category, xp_amount, respond })
+            .ok();
         recv.recv().unwrap()
     }
 }
@@ -277,6 +451,7 @@ impl Database {
                 id TEXT PRIMARY KEY,
                 title TEXT NOT NULL,
                 description TEXT NOT NULL,
+                category TEXT NOT NULL DEFAULT 'general',
                 type TEXT NOT NULL,
                 status TEXT NOT NULL DEFAULT 'active',
                 progress INTEGER NOT NULL DEFAULT 0,
@@ -301,6 +476,10 @@ impl Database {
             CREATE INDEX IF NOT EXISTS idx_xp_records_date ON xp_records(date);
         "#,
         )?;
+
+        // Initialize player_stats table and seed defaults if empty
+        player_stats::initialize_table(&self.conn)?;
+
         Ok(())
     }
 
@@ -394,10 +573,8 @@ impl Database {
     }
 
     pub fn delete_habit(&mut self, id: &Uuid) -> DBResult<()> {
-        self.conn.execute(
-            "DELETE FROM habits WHERE id = ?",
-            params![&id.to_string()],
-        )?;
+        self.conn
+            .execute("DELETE FROM habits WHERE id = ?", params![&id.to_string()])?;
         Ok(())
     }
 
@@ -425,17 +602,19 @@ impl Database {
     }
 
     pub fn get_progression(&self) -> DBResult<PlayerProgression> {
-        self.conn.query_row(
-            "SELECT total_xp, level, xp_to_next FROM progression WHERE id = 1",
-            [],
-            |row| {
-                Ok(PlayerProgression {
-                    total_xp: row.get(0)?,
-                    level: row.get(1)?,
-                    xp_to_next: row.get(2)?,
-                })
-            },
-        ).map_err(|e| DBError::SQL(e))
+        self.conn
+            .query_row(
+                "SELECT total_xp, level, xp_to_next FROM progression WHERE id = 1",
+                [],
+                |row| {
+                    Ok(PlayerProgression {
+                        total_xp: row.get(0)?,
+                        level: row.get(1)?,
+                        xp_to_next: row.get(2)?,
+                    })
+                },
+            )
+            .map_err(|e| DBError::SQL(e))
     }
 
     pub fn record_xp(
@@ -553,12 +732,13 @@ impl Database {
     pub fn save_challenges(&mut self, challenges: &[Challenge]) -> DBResult<()> {
         for challenge in challenges {
             self.conn.execute(
-                r#"INSERT OR REPLACE INTO challenges (id, title, description, type, status, progress, target, xp_reward, expires_at, completed_at)
-                   VALUES (:id, :title, :description, :type, :status, :progress, :target, :xp_reward, :expires_at, :completed_at)"#,
+                r#"INSERT OR REPLACE INTO challenges (id, title, description, category, type, status, progress, target, xp_reward, expires_at, completed_at)
+                   VALUES (:id, :title, :description, :category, :type, :status, :progress, :target, :xp_reward, :expires_at, :completed_at)"#,
                 params![
                     &challenge.id.to_string(),
                     &challenge.title,
                     &challenge.description,
+                    &challenge.category,
                     &format!("{:?}", challenge.challenge_type),
                     &format!("{:?}", challenge.status),
                     challenge.progress,
@@ -574,7 +754,7 @@ impl Database {
 
     pub fn list_challenges(&self) -> DBResult<Vec<Challenge>> {
         let mut stmt = self.conn.prepare(
-            "SELECT id, title, description, type, status, progress, target, xp_reward, expires_at, completed_at FROM challenges ORDER BY status, title"
+            "SELECT id, title, description, category, type, status, progress, target, xp_reward, expires_at, completed_at FROM challenges ORDER BY status, title"
         )?;
         let mut rows = stmt.query([])?;
         let mut challenges = Vec::new();
@@ -588,7 +768,8 @@ impl Database {
 
     fn row_to_habit(row: &Row<'_>) -> DBResult<Habit> {
         Ok(Habit {
-            id: Uuid::parse_str(&row.get::<_, String>(0)?).map_err(|e| DBError::Parse(e.to_string()))?,
+            id: Uuid::parse_str(&row.get::<_, String>(0)?)
+                .map_err(|e| DBError::Parse(e.to_string()))?,
             name: row.get(1)?,
             description: row.get(2)?,
             category: row.get(3)?,
@@ -607,7 +788,8 @@ impl Database {
 
     fn row_to_streak(row: &Row<'_>) -> DBResult<Streak> {
         Ok(Streak {
-            habit_id: Uuid::parse_str(&row.get::<_, String>(1)?).map_err(|e| DBError::Parse(e.to_string()))?,
+            habit_id: Uuid::parse_str(&row.get::<_, String>(1)?)
+                .map_err(|e| DBError::Parse(e.to_string()))?,
             count: row.get(2)?,
             started_at: NaiveDate::parse_from_str(&row.get::<_, String>(3)?, "%Y-%m-%d")
                 .map_err(|e| DBError::Parse(e.to_string()))?,
@@ -637,7 +819,8 @@ impl Database {
             },
         };
         Ok(XPRecord {
-            id: Uuid::parse_str(&row.get::<_, String>(0)?).map_err(|e| DBError::Parse(e.to_string()))?,
+            id: Uuid::parse_str(&row.get::<_, String>(0)?)
+                .map_err(|e| DBError::Parse(e.to_string()))?,
             amount: row.get(1)?,
             source,
             date: NaiveDate::parse_from_str(&row.get::<_, String>(4)?, "%Y-%m-%d")
@@ -647,7 +830,8 @@ impl Database {
 
     fn row_to_achievement(row: &Row<'_>) -> DBResult<Achievement> {
         Ok(Achievement {
-            id: Uuid::parse_str(&row.get::<_, String>(0)?).map_err(|e| DBError::Parse(e.to_string()))?,
+            id: Uuid::parse_str(&row.get::<_, String>(0)?)
+                .map_err(|e| DBError::Parse(e.to_string()))?,
             title: row.get(1)?,
             description: row.get(2)?,
             icon: row.get(3)?,
@@ -661,16 +845,18 @@ impl Database {
 
     fn row_to_challenge(row: &Row<'_>) -> DBResult<Challenge> {
         Ok(Challenge {
-            id: Uuid::parse_str(&row.get::<_, String>(0)?).map_err(|e| DBError::Parse(e.to_string()))?,
+            id: Uuid::parse_str(&row.get::<_, String>(0)?)
+                .map_err(|e| DBError::Parse(e.to_string()))?,
             title: row.get(1)?,
             description: row.get(2)?,
-            challenge_type: Self::parse_challenge_type(row.get::<_, String>(3)?),
-            status: Self::parse_challenge_status(row.get::<_, String>(4)?),
-            progress: row.get(5)?,
-            target: row.get(6)?,
-            xp_reward: row.get(7)?,
-            expires_at: Self::parse_date(&row.get::<_, Option<String>>(8)?),
-            completed_at: Self::parse_date(&row.get::<_, Option<String>>(9)?),
+            category: row.get(3)?,
+            challenge_type: Self::parse_challenge_type(row.get::<_, String>(4)?),
+            status: Self::parse_challenge_status(row.get::<_, String>(5)?),
+            progress: row.get(6)?,
+            target: row.get(7)?,
+            xp_reward: row.get(8)?,
+            expires_at: Self::parse_date(&row.get::<_, Option<String>>(9)?),
+            completed_at: Self::parse_date(&row.get::<_, Option<String>>(10)?),
         })
     }
 
@@ -740,7 +926,39 @@ impl Database {
     }
 
     fn parse_date(s: &Option<String>) -> Option<NaiveDate> {
-        s.as_ref().and_then(|s| NaiveDate::parse_from_str(s, "%Y-%m-%d").ok())
+        s.as_ref()
+            .and_then(|s| NaiveDate::parse_from_str(s, "%Y-%m-%d").ok())
+    }
+
+    // ─── Player Stats ──────────────────────────────────────────────────
+
+    pub fn list_stats(&self) -> DBResult<Vec<PlayerStat>> {
+        player_stats::list_stats(&self.conn)
+    }
+
+    pub fn upsert_stat(&self, stat: &PlayerStat) -> DBResult<()> {
+        player_stats::upsert_stat(&self.conn, stat)
+    }
+
+    pub fn delete_stat(&self, id: &str) -> DBResult<()> {
+        player_stats::delete_stat(&self.conn, id)
+    }
+
+    /// Award XP to all stats whose category_mappings include this habit_category.
+    /// Returns the updated stats.
+    pub fn award_stat_xp(&self, habit_category: &str, xp_amount: u32) -> DBResult<Vec<PlayerStat>> {
+        let all_stats = player_stats::list_stats(&self.conn)?;
+        let mut updated = Vec::new();
+        for mut stat in all_stats {
+            let mappings: Vec<String> = serde_json::from_str(&stat.category_mappings)
+                .unwrap_or_default();
+            if mappings.iter().any(|c| c == habit_category) {
+                stat.add_xp(xp_amount);
+                player_stats::upsert_stat(&self.conn, &stat)?;
+                updated.push(stat);
+            }
+        }
+        Ok(updated)
     }
 }
 
@@ -846,7 +1064,12 @@ mod tests {
     #[test]
     fn test_save_streak() {
         let mut db = test_db();
-        let habit = Habit::new("Meditate", "Mindfulness", Difficulty::Easy, Frequency::Daily);
+        let habit = Habit::new(
+            "Meditate",
+            "Mindfulness",
+            Difficulty::Easy,
+            Frequency::Daily,
+        );
         db.create_habit(&habit).unwrap();
 
         let streak = Streak::new(habit.id, chrono::Utc::now().date_naive());
