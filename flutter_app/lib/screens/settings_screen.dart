@@ -6,7 +6,6 @@ import '../core/theme/app_theme.dart';
 import '../providers/theme_provider.dart';
 import '../models/habit_categories.dart';
 import '../models/app_state.dart';
-import '../services/api_client.dart';
 import '../providers/habit_provider.dart';
 
 const _buyMeACoffeeUrl = 'https://www.buymeacoffee.com/synthalorian';
@@ -18,7 +17,6 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final currentTheme = ref.watch(themeProvider);
-    final notifier = ref.read(habitProvider.notifier);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
@@ -32,9 +30,10 @@ class SettingsScreen extends ConsumerWidget {
               leading: Icon(Icons.palette_outlined),
             ),
             ...AppThemeMode.all.map((mode) {
+              final selected = mode.name == currentTheme.name;
               return RadioListTile<String>(
                 value: mode.name,
-                groupValue: currentTheme.name,
+                groupValue: selected ? mode.name : null,
                 title: Text(mode.displayName),
                 subtitle: Text(mode.description),
                 onChanged: (v) {
@@ -46,8 +45,7 @@ class SettingsScreen extends ConsumerWidget {
                   color: theme.colorScheme.secondary,
                 ),
               );
-            }).toList(),
-
+            }),
             const Divider(),
 
             // Habit Library
@@ -92,6 +90,20 @@ class SettingsScreen extends ConsumerWidget {
               subtitle: const Text('Buy me a coffee on BuyMeACoffee'),
               onTap: () => _openUrl(_buyMeACoffeeUrl),
               trailing: const Icon(Icons.open_in_new),
+            ),
+
+            const Divider(),
+
+            // Reset All Data
+            ListTile(
+              leading: Icon(Icons.delete_sweep_rounded,
+                  color: Colors.red.shade400),
+              title: Text('Reset All Data',
+                  style: TextStyle(color: Colors.red.shade400)),
+              subtitle: const Text('Clear all habits, XP, and progress'),
+              onTap: () => _showResetDialog(context, ref),
+              trailing: Icon(Icons.chevron_right,
+                  color: Colors.red.shade400),
             ),
 
             // Open Source
@@ -156,6 +168,38 @@ class SettingsScreen extends ConsumerWidget {
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     }
+  }
+
+  void _showResetDialog(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Reset All Data?'),
+        content: const Text(
+          'This will permanently delete all your habits, '
+          'XP, achievements, and stats. This cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.of(ctx).pop();
+              await ref.read(habitProvider.notifier).resetAllData();
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('All data cleared. Start fresh!')),
+                );
+              }
+            },
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Reset Everything'),
+          ),
+        ],
+      ),
+    );
   }
 }
 

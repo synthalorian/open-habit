@@ -62,8 +62,20 @@ class ChallengesScreen extends ConsumerWidget {
                     challenge: challenges[i],
                     onProgress: challenges[i].completed
                         ? null
-                        : () => notifier.progressChallenge(
-                            challenges[i].id),
+                        : () async {
+                            await notifier.progressChallenge(
+                                challenges[i].id);
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    '${challenges[i].title} — ${challenges[i].progress + 1} / ${challenges[i].target}',
+                                  ),
+                                  duration: const Duration(seconds: 1),
+                                ),
+                              );
+                            }
+                          },
                   ),
                 ),
               ),

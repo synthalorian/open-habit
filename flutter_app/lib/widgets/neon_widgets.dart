@@ -18,7 +18,7 @@ class GradientBackground extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isSynthwave = theme.brightness == Brightness.dark &&
-        theme.colorScheme.primary.value == 0xFFFF9B71;
+        theme.colorScheme.primary.toARGB32() == 0xFFFF9B71;
 
     return isSynthwave
         ? Container(

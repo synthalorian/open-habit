@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../models/models.dart' as api;
 import '../providers/habit_provider.dart';
+import '../services/local_database_service.dart';
 import '../widgets/neon_widgets.dart';
 import '../widgets/habit_card.dart';
 import '../widgets/challenge_card.dart';
-import '../widgets/recommendation_card.dart';
 import '../widgets/section_header.dart';
 import '../widgets/stat_bar.dart';
 import '../screens/settings_screen.dart';
@@ -52,7 +51,6 @@ class DashboardScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Loading shimmer
                 if (data.isLoading) _LoadingShimmer(theme: theme),
 
                 // XP Progress
@@ -103,9 +101,10 @@ class DashboardScreen extends ConsumerWidget {
                             _showCompletionDialog(context, response);
                           }
                         },
+                        onDelete: () => notifier.deleteHabit(habit.id),
                       ),
                     );
-                  }).toList(),
+                  }),
                 const SizedBox(height: 24),
 
                 // RPG Stats (compact grid)
@@ -125,7 +124,6 @@ class DashboardScreen extends ConsumerWidget {
                       stat: data.stats[i],
                       compact: true,
                       onTap: () {
-                        // Switch to stats tab — for now just show quick info
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             duration: const Duration(seconds: 1),
@@ -154,69 +152,91 @@ class DashboardScreen extends ConsumerWidget {
                       padding: const EdgeInsets.only(bottom: 8),
                       child: ChallengeCardWidget(
                         challenge: c,
-                        onProgress: () =>
-                            notifier.progressChallenge(c.id),
+                        onProgress: () async {
+                          await notifier.progressChallenge(c.id);
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Progressed "${c.title}"!'),
+                                duration: const Duration(seconds: 1),
+                              ),
+                            );
+                          }
+                        },
                       ),
                     );
-                  }).toList(),
+                  }),
                 const SizedBox(height: 24),
 
                 // Active Streaks
                 SectionHeader(title: 'Active Streaks'),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 12, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.surface.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: theme.colorScheme.primary.withValues(alpha: 0.3),
+                if (data.habits.where((h) => h.streakCount > 0).isEmpty)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surface.withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: theme.colorScheme.primary.withValues(alpha: 0.3),
+                      ),
                     ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.local_fire_department_rounded,
-                          color: Color(0xFFFF5500), size: 28),
-                      const SizedBox(width: 8),
-                      Text(
-                        '${data.completedToday}',
-                        style: GoogleFonts.rajdhani(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w700,
-                          color: theme.colorScheme.primary,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'No streaks yet. Keep completing habits daily!',
+                          style: GoogleFonts.rajdhani(
+                            fontSize: 14,
+                            color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 16),
-                      Text(
-                        'completed today',
-                        style: GoogleFonts.rajdhani(
-                          fontSize: 14,
-                          color: theme.colorScheme.onSurface
-                              .withValues(alpha: 0.6),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                // Recommendations
-                if (data.recommendations.isNotEmpty) ...[
-                  SectionHeader(title: 'Recommended For You'),
-                  ...data.recommendations.map((rec) {
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: RecommendationCardWidget(
-                        recommendation: rec,
-                        onAdd: () =>
-                            notifier.addRecommendationAsHabit(rec.id),
-                        onDismiss: () =>
-                            notifier.dismissRecommendation(rec.id),
-                      ),
-                    );
-                  }).toList(),
-                ],
+                      ],
+                    ),
+                  )
+                else
+                  ...data.habits
+                      .where((h) => h.streakCount > 0)
+                      .take(5)
+                      .map((h) => Padding(
+                            padding: const EdgeInsets.only(bottom: 6),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: theme.colorScheme.surface.withValues(alpha: 0.2),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(Icons.local_fire_department,
+                                      size: 16, color: const Color(0xFFFF5500)),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    h.name,
+                                    style: GoogleFonts.rajdhani(
+                                      fontSize: 14,
+                                      color: theme.colorScheme.onSurface,
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFFF5500).withValues(alpha: 0.15),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Text(
+                                      '${h.streakCount} day${h.streakCount == 1 ? '' : 's'}',
+                                      style: GoogleFonts.rajdhani(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w700,
+                                        color: const Color(0xFFFF5500),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          )),
               ],
             ),
           ),
@@ -226,7 +246,7 @@ class DashboardScreen extends ConsumerWidget {
   }
 
   void _showCompletionDialog(
-      BuildContext context, api.CompletionResponse response) {
+      BuildContext context, CompletionResultData response) {
     final theme = Theme.of(context);
     showDialog(
       context: context,
@@ -265,14 +285,10 @@ class DashboardScreen extends ConsumerWidget {
             if (response.bonusXp > 0)
               _completionRow('Streak Bonus', '+${response.bonusXp}',
                   theme, Icons.local_fire_department),
-            if (response.achievementXp > 0)
-              _completionRow('Achievement', '+${response.achievementXp}',
+            if (response.newAchievements.isNotEmpty)
+              _completionRow('Achievement',
+                  '+${response.newAchievements.fold<int>(0, (sum, a) => sum + a.xpReward)}',
                   theme, Icons.emoji_events),
-            const Divider(),
-            _completionRow(
-                'Total', '${response.totalXp}', theme, Icons.trending_up),
-            _completionRow(
-                'Streak', '${response.streak} days', theme, Icons.local_fire_department),
             if (response.newAchievements.isNotEmpty) ...[
               const SizedBox(height: 8),
               Text(
@@ -289,12 +305,11 @@ class DashboardScreen extends ConsumerWidget {
                     child: Row(
                       children: [
                         Icon(Icons.emoji_events,
-                            size: 18,
-                            color: const Color(0xFFFFD700)),
+                            size: 18, color: const Color(0xFFFFD700)),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            '${a['title'] ?? ''} (+${a['xp'] ?? 0} XP)',
+                            '${a.title} (+${a.xpReward} XP)',
                             style: GoogleFonts.rajdhani(
                               fontSize: 13,
                               color: theme.colorScheme.onSurface,
@@ -305,6 +320,9 @@ class DashboardScreen extends ConsumerWidget {
                     ),
                   )),
             ],
+            const Divider(),
+            _completionRow(
+                'Streak', '${response.streak} day${response.streak == 1 ? '' : 's'}', theme, Icons.local_fire_department),
           ],
         ),
         actions: [
@@ -412,95 +430,6 @@ class _LoadingShimmer extends StatelessWidget {
             ),
           ),
         )),
-      ],
-    );
-  }
-}
-
-/// XP progress bar with animated-style gradient
-class XPProgressBar extends StatelessWidget {
-  final double progress;
-  final int currentXP;
-  final int neededXP;
-  final int level;
-
-  const XPProgressBar({
-    super.key,
-    required this.progress,
-    required this.currentXP,
-    required this.neededXP,
-    required this.level,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final clampedProgress = progress.clamp(0.0, 1.0);
-
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.trending_up_rounded,
-                    color: theme.colorScheme.primary, size: 20),
-                const SizedBox(width: 8),
-                Text(
-                  'Level $level',
-                  style: GoogleFonts.rajdhani(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: theme.colorScheme.primary,
-                  ),
-                ),
-              ],
-            ),
-            Text(
-              '$currentXP / $neededXP XP',
-              style: GoogleFonts.rajdhani(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(10),
-          child: Stack(
-            children: [
-              Container(
-                height: 12,
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surface.withValues(alpha: 0.5),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: theme.colorScheme.primary.withValues(alpha: 0.3),
-                    width: 1,
-                  ),
-                ),
-              ),
-              FractionallySizedBox(
-                widthFactor: clampedProgress,
-                child: Container(
-                  height: 12,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        theme.colorScheme.secondary,
-                        theme.colorScheme.primary,
-                      ],
-                    ),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
       ],
     );
   }

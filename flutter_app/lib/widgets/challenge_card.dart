@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/app_state.dart';
-import '../models/habit_categories.dart';
 import 'neon_widgets.dart';
 
 class ChallengeCardWidget extends StatelessWidget {
