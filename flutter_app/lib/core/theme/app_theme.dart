@@ -143,11 +143,11 @@ class AppThemes {
           shadowColor: SynthwaveColors.neonCyan.withValues(alpha: 0.3),
         ),
         appBarTheme: const AppBarTheme(
-          elevation: 2,
+          elevation: 0,
+          scrolledUnderElevation: 0,
           centerTitle: true,
           backgroundColor: SynthwaveColors.bgPrimary,
           foregroundColor: SynthwaveColors.neonCoral,
-          shadowColor: SynthwaveColors.neonCoral,
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(

@@ -21,6 +21,7 @@ class DashboardScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
+        toolbarHeight: 72,
         title: Text(
           'Open Habit',
           style: GoogleFonts.rajdhani(
@@ -29,6 +30,7 @@ class DashboardScreen extends ConsumerWidget {
             color: theme.colorScheme.primary,
           ),
         ),
+        centerTitle: false,
         actions: [
           IconButton(
             icon: const Icon(Icons.settings_outlined),
