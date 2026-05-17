@@ -641,6 +641,7 @@ class LocalDatabaseService extends ChangeNotifier {
       ];
 
   List<StatData> _defaultStats() => [
+        StatData(id: 'stat_spi', name: 'Spirit', icon: '🙏', color: '#BB88FF', categoryMappings: '["Mindfulness","General"]'),
         StatData(id: 'stat_str', name: 'Strength', icon: '💪', color: '#FF5500', categoryMappings: '["Fitness"]'),
         StatData(id: 'stat_int', name: 'Intelligence', icon: '🧠', color: '#00AAFF', categoryMappings: '["Learning","Creative"]'),
         StatData(id: 'stat_vit', name: 'Vitality', icon: '❤️', color: '#FF3333', categoryMappings: '["Mindfulness","Nutrition"]'),

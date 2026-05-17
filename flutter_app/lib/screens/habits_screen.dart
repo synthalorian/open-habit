@@ -131,111 +131,113 @@ class HabitsScreen extends ConsumerWidget {
               ),
             ],
           ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Bad habit toggle
-              Row(
-                children: [
-                  const Text('Build Habit'),
-                  Switch(
-                    value: isBad,
-                    activeThumbColor: const Color(0xFFFF007F),
-                    onChanged: (v) =>
-                        setDialogState(() => isBad = v),
-                  ),
-                  Text('Quit Habit',
-                      style: TextStyle(
-                          color: isBad
-                              ? const Color(0xFFFF007F)
-                              : null)),
-                ],
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: nameController,
-                decoration: InputDecoration(
-                  labelText: isBad ? 'Bad Habit Name' : 'Habit Name',
-                  hintText: isBad
-                      ? 'e.g., Smoking, Social Media, Junk Food'
-                      : 'e.g., Meditate, Read, Run',
-                  prefixIcon: Icon(
-                    isBad ? Icons.block_rounded : Icons.check_circle_outline,
-                    color: isBad ? const Color(0xFFFF007F) : null,
-                  ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Bad habit toggle
+                Row(
+                  children: [
+                    const Text('Build Habit'),
+                    Switch(
+                      value: isBad,
+                      activeThumbColor: const Color(0xFFFF007F),
+                      onChanged: (v) =>
+                          setDialogState(() => isBad = v),
+                    ),
+                    Text('Quit Habit',
+                        style: TextStyle(
+                            color: isBad
+                                ? const Color(0xFFFF007F)
+                                : null)),
+                  ],
                 ),
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                initialValue: category,
-                isExpanded: true,
-                decoration: const InputDecoration(
-                  labelText: 'Category',
-                  border: OutlineInputBorder(),
-                ),
-                items: HabitCategories.names
-                    .map((c) => DropdownMenuItem(
-                        value: c,
-                        child: Row(
-                          children: [
-                            Text(HabitCategories.emojiFor(c)),
-                            const SizedBox(width: 8),
-                            Text(c),
-                          ],
-                        )))
-                    .toList(),
-                onChanged: (v) =>
-                    setDialogState(() => category = v ?? 'General'),
-              ),
-              if (!isBad) ...[
-                const SizedBox(height: 12),
-                DropdownButtonFormField<String>(
-                  initialValue: difficulty,
-                  isExpanded: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Difficulty',
-                    border: OutlineInputBorder(),
-                  ),
-                  items: ['Easy', 'Medium', 'Hard', 'Extreme']
-                      .map((d) => DropdownMenuItem(
-                          value: d,
-                          child: Text(
-                              '$d (${AppData.xpForDifficulty(d)} XP)')))
-                      .toList(),
-                  onChanged: (v) =>
-                      setDialogState(() => difficulty = v ?? 'Easy'),
-                ),
-              ],
-              if (isBad) ...[
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFF007F).withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: const Color(0xFFFF007F).withValues(alpha: 0.3),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: nameController,
+                  decoration: InputDecoration(
+                    labelText: isBad ? 'Bad Habit Name' : 'Habit Name',
+                    hintText: isBad
+                        ? 'e.g., Smoking, Social Media, Junk Food'
+                        : 'e.g., Meditate, Read, Run',
+                    prefixIcon: Icon(
+                      isBad ? Icons.block_rounded : Icons.check_circle_outline,
+                      color: isBad ? const Color(0xFFFF007F) : null,
                     ),
                   ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.info_outline,
-                          size: 18, color: const Color(0xFFFF007F)),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'You earn XP for each day you avoid this habit. Stay strong!',
-                          style: GoogleFonts.rajdhani(
-                            fontSize: 12,
-                            color: const Color(0xFFFF007F).withValues(alpha: 0.8),
+                ),
+                const SizedBox(height: 16),
+                DropdownButtonFormField<String>(
+                  initialValue: category,
+                  isExpanded: true,
+                  decoration: const InputDecoration(
+                    labelText: 'Category',
+                    border: OutlineInputBorder(),
+                  ),
+                  items: HabitCategories.names
+                      .map((c) => DropdownMenuItem(
+                          value: c,
+                          child: Row(
+                            children: [
+                              Text(HabitCategories.emojiFor(c)),
+                              const SizedBox(width: 8),
+                              Text(c),
+                            ],
+                          )))
+                      .toList(),
+                  onChanged: (v) =>
+                      setDialogState(() => category = v ?? 'General'),
+                ),
+                if (!isBad) ...[
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String>(
+                    initialValue: difficulty,
+                    isExpanded: true,
+                    decoration: const InputDecoration(
+                      labelText: 'Difficulty',
+                      border: OutlineInputBorder(),
+                    ),
+                    items: ['Easy', 'Medium', 'Hard', 'Extreme']
+                        .map((d) => DropdownMenuItem(
+                            value: d,
+                            child: Text(
+                                '$d (${AppData.xpForDifficulty(d)} XP)')))
+                        .toList(),
+                    onChanged: (v) =>
+                        setDialogState(() => difficulty = v ?? 'Easy'),
+                  ),
+                ],
+                if (isBad) ...[
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFF007F).withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: const Color(0xFFFF007F).withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.info_outline,
+                            size: 18, color: const Color(0xFFFF007F)),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'You earn XP for each day you avoid this habit. Stay strong!',
+                            style: GoogleFonts.rajdhani(
+                              fontSize: 12,
+                              color: const Color(0xFFFF007F).withValues(alpha: 0.8),
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
+                ],
               ],
-            ],
+            ),
           ),
           actions: [
             TextButton(
