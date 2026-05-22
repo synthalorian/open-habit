@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/widget_challenges_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_margin="8dp"
+    android:orientation="vertical"
+    android:background="@drawable/widget_background"
+    android:padding="10dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="12sp"
+        android:textColor="#FF00FF"
+        android:textStyle="bold"
+        android:text="⬡ CHALLENGES" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="3dp"
+        android:layout_marginBottom="5dp"
+        android:background="#33FF00FF" />
+
+    <TextView
+        android:id="@+id/challenge_1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="12sp"
+        android:textColor="#FFFFFFFF"
+        android:paddingVertical="3dp"
+        tools:text="🏆 Cold shower  1/1 (+25XP)" />
+
+    <TextView
+        android:id="@+id/challenge_2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="12sp"
+        android:textColor="#FFFFFFFF"
+        android:paddingVertical="3dp"
+        tools:text="🏆 Read 30m  3/7 (+50XP)" />
+
+    <TextView
+        android:id="@+id/challenge_3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="12sp"
+        android:textColor="#FFFFFFFF"
+        android:paddingVertical="3dp"
+        tools:text="" />
+
+</LinearLayout>
