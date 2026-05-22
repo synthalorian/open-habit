@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/widget_xp_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_margin="8dp"
+    android:orientation="vertical"
+    android:background="@drawable/widget_background"
+    android:padding="10dp">
+
+    <TextView
+        android:id="@+id/xp_level"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="22sp"
+        android:textColor="#FF00FF"
+        android:textStyle="bold"
+        tools:text="Lv.7" />
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="14dp"
+        android:layout_marginTop="6dp"
+        android:background="#33FFFFFF"
+        android:padding="0dp">
+
+        <View
+            android:id="@+id/xp_bar_fill"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="start"
+            android:background="#FF9B71"
+            android:visibility="visible" />
+
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/xp_progress"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:textSize="12sp"
+        android:textColor="#FFFFFFFF"
+        tools:text="342 / 700 XP" />
+
+    <TextView
+        android:id="@+id/xp_streak"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:textSize="13sp"
+        android:textColor="#FF9B71"
+        tools:text="🔥 Best: 12" />
+
+</LinearLayout>

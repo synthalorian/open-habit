@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "com.synthwave.open_habit"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
     compileOptions {

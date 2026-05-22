@@ -3,6 +3,7 @@ import 'dart:ui' show Color;
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
+import 'widget_data_service.dart';
 
 // ─── Data Models (self-contained, no HTTP deps) ──────────────────────────
 
@@ -341,6 +342,7 @@ class LocalDatabaseService extends ChangeNotifier {
     _habits.add(habit);
     await _persist('oh_habits', _habits.map((h) => h.toJson()).toList());
     notifyListeners();
+    WidgetDataService.pushAll(this);
   }
 
   Future<bool> deleteHabit(String id) async {
@@ -349,6 +351,7 @@ class LocalDatabaseService extends ChangeNotifier {
     if (_habits.length < before) {
       await _persist('oh_habits', _habits.map((h) => h.toJson()).toList());
       notifyListeners();
+      WidgetDataService.pushAll(this);
       return true;
     }
     return false;
@@ -483,6 +486,8 @@ class LocalDatabaseService extends ChangeNotifier {
 
     notifyListeners();
 
+    WidgetDataService.pushAll(this);
+
     return CompletionResultData(
       xpAwarded: totalAwarded,
       bonusXp: bonus,
@@ -520,6 +525,7 @@ class LocalDatabaseService extends ChangeNotifier {
 
     await _persist('oh_challenges', _challenges.map((c) => c.toJson()).toList());
     notifyListeners();
+    WidgetDataService.pushAll(this);
     return _challenges[idx];
   }
 
@@ -529,6 +535,7 @@ class LocalDatabaseService extends ChangeNotifier {
     _stats.add(stat);
     await _persist('oh_stats', _stats.map((s) => s.toJson()).toList());
     notifyListeners();
+    WidgetDataService.pushAll(this);
   }
 
   Future<void> updateStat(StatData stat) async {
@@ -537,6 +544,7 @@ class LocalDatabaseService extends ChangeNotifier {
       _stats[idx] = stat;
       await _persist('oh_stats', _stats.map((s) => s.toJson()).toList());
       notifyListeners();
+      WidgetDataService.pushAll(this);
     }
   }
 
@@ -546,6 +554,7 @@ class LocalDatabaseService extends ChangeNotifier {
     if (_stats.length < before) {
       await _persist('oh_stats', _stats.map((s) => s.toJson()).toList());
       notifyListeners();
+      WidgetDataService.pushAll(this);
       return true;
     }
     return false;
@@ -574,6 +583,7 @@ class LocalDatabaseService extends ChangeNotifier {
     _persist('oh_stats', _stats.map((s) => s.toJson()).toList());
 
     notifyListeners();
+    WidgetDataService.pushAll(this);
   }
 
   // ─── Internal Helpers ────────────────────────────────────────────────

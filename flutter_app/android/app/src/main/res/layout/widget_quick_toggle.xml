@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/widget_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_margin="8dp"
+    android:orientation="vertical"
+    android:background="@drawable/widget_background"
+    android:padding="10dp">
+
+    <TextView
+        android:id="@+id/widget_date"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="12sp"
+        android:textColor="#FF9B71"
+        android:textStyle="bold"
+        tools:text="Mon, May 21" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="6dp"
+        android:background="#33FF9B71" />
+
+    <TextView
+        android:id="@+id/habit_1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="13sp"
+        android:textColor="#FFFFFFFF"
+        android:paddingVertical="3dp"
+        android:focusable="true"
+        tools:text="○ Morning workout" />
+
+    <TextView
+        android:id="@+id/habit_2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="13sp"
+        android:textColor="#FFFFFFFF"
+        android:paddingVertical="3dp"
+        android:focusable="true"
+        tools:text="✅ Read 30 min" />
+
+    <TextView
+        android:id="@+id/habit_3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="13sp"
+        android:textColor="#FFFFFFFF"
+        android:paddingVertical="3dp"
+        android:focusable="true"
+        tools:text="○ Drink water" />
+
+    <TextView
+        android:id="@+id/habit_4"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="13sp"
+        android:textColor="#FFFFFFFF"
+        android:paddingVertical="3dp"
+        android:focusable="true"
+        tools:text="⛔ No sugar" />
+
+    <TextView
+        android:id="@+id/habit_5"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="13sp"
+        android:textColor="#FFFFFFFF"
+        android:paddingVertical="3dp"
+        android:focusable="true"
+        tools:text="" />
+
+    <TextView
+        android:id="@+id/habit_6"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="13sp"
+        android:textColor="#FFFFFFFF"
+        android:paddingVertical="3dp"
+        android:focusable="true"
+        tools:text="" />
+
+</LinearLayout>
