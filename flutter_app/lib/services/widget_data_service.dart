@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:home_widget/home_widget.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'local_database_service.dart';
 
 /// Pushes LocalDatabaseService state to Android home screen widgets.
@@ -11,6 +12,7 @@ class WidgetDataService {
   static const String _keyXp = 'oh_widget_xp';
   static const String _keyStats = 'oh_widget_stats';
   static const String _keyChallenges = 'oh_widget_challenges';
+  static const String _keyTheme = 'oh_widget_theme';
 
   // ── Provider class names (must match Kotlin classes in AndroidManifest) ──
 
@@ -24,12 +26,13 @@ class WidgetDataService {
       'com.synthwave.open_habit.widgets.ChallengesWidgetProvider';
 
   /// Push data for ALL 4 widgets and trigger their updates.
-  static Future<void> pushAll(LocalDatabaseService db) async {
+  static Future<void> pushAll(LocalDatabaseService db, {String? themeName}) async {
     await Future.wait([
       _pushHabits(db),
       _pushXp(db),
       _pushStats(db),
       _pushChallenges(db),
+      if (themeName != null) _pushTheme(themeName),
     ]);
   }
 
@@ -123,6 +126,18 @@ class WidgetDataService {
     );
   }
 
+  // ── Theme: push current theme name so widgets recolor ────────────────
+
+  static Future<void> _pushTheme(String themeName) async {
+    await Future.wait([
+      HomeWidget.saveWidgetData<String>(_keyTheme, themeName),
+      HomeWidget.updateWidget(qualifiedAndroidName: _quickToggleProvider),
+      HomeWidget.updateWidget(qualifiedAndroidName: _xpSummaryProvider),
+      HomeWidget.updateWidget(qualifiedAndroidName: _statSnapshotProvider),
+      HomeWidget.updateWidget(qualifiedAndroidName: _challengesProvider),
+    ]);
+  }
+
   /// Background callback – called when a widget click triggers Dart code.
   @pragma('vm:entry-point')
   static Future<void> backgroundCallback(Uri? data) async {
@@ -136,7 +151,9 @@ class WidgetDataService {
       final db = LocalDatabaseService();
       await db.init();
       await db.completeHabit(habitId);
-      await pushAll(db);
+      final prefs = await SharedPreferences.getInstance();
+      final themeName = prefs.getString('theme_mode');
+      await pushAll(db, themeName: themeName);
     }
   }
 

@@ -75,13 +75,12 @@ class HabitNotifier extends Notifier<AppData> {
         progress: c.progress,
         target: c.target,
         completed: c.isCompleted,
+        oneClick: c.oneClick,
       );
 
   // ─── Mutations ───────────────────────────────────────────────────────────
 
   Future<CompletionResultData?> toggleHabit(String id) async {
-    final habit = state.habits.firstWhere((h) => h.id == id);
-    if (habit.completed) return null;
     try {
       final result = await _db.completeHabit(id);
       return result;
@@ -177,6 +176,10 @@ class HabitNotifier extends Notifier<AppData> {
 
   Future<bool> deleteStat(String id) async {
     return await _db.deleteStat(id);
+  }
+
+  Future<void> addQuickXP(int amount) async {
+    await _db.addQuickXP(amount);
   }
 
   // ─── Reset ────────────────────────────────────────────────────────────────

@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../core/theme/app_theme.dart';
+import '../services/widget_data_service.dart';
+import '../services/local_database_service.dart';
 
 // ─── Theme Provider (riverpod v3: uses Notifier instead of StateNotifier) ──
 
@@ -30,6 +32,10 @@ class ThemeNotifier extends Notifier<AppThemeMode> {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_key, mode.name);
+      // Push theme to widgets so they recolor immediately
+      final db = LocalDatabaseService();
+      await db.init();
+      await WidgetDataService.pushAll(db, themeName: mode.name);
     } catch (_) {}
   }
 }

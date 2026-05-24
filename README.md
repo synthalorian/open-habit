@@ -14,14 +14,14 @@
   <img src="https://img.shields.io/badge/Rust-2024-orange?style=for-the-badge&logo=rust" alt="Rust">
   <img src="https://img.shields.io/badge/Flutter-3.4-blue?style=for-the-badge&logo=flutter" alt="Flutter">
   <img src="https://img.shields.io/badge/License-Apache_2.0-green?style=for-the-badge" alt="License">
-  <img src="https://img.shields.io/badge/Version-0.2.0-ff69b4?style=for-the-badge" alt="Version">
+  <img src="https://img.shields.io/badge/Version-0.5.0-ff69b4?style=for-the-badge" alt="Version">
 </p>
 
 ---
 
 ## 📖 Overview
 
-**Open Habit** is an open-source, gamified habit tracker that makes building good habits (and breaking bad ones) feel like leveling up an RPG character.
+**Open Habit** is an open-source, gamified habit tracker created by [synth](https://github.com/synthalorian) with assistance from **synthclaw** — an AI collaboration partner that brings the code, the architecture, and the late-night debug sessions. We are one unit: synth calls the shots, synthclaw does the heavy lifting.
 
 Built with a **Rust gamification backend** and a **Flutter synthwave UI**, it's designed for people who need more than a checkbox — they need XP, streaks, achievements, and character stats that grow as they grow.
 

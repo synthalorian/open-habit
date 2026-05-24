@@ -7,7 +7,7 @@ class AppThemeMode {
   static const light = AppThemeMode._('light', 'Light', 'Clean and bright');
   static const dark = AppThemeMode._('dark', 'Dark', 'Easy on the eyes');
   static const synthwave =
-      AppThemeMode._('synthwave', 'Synthwave \'84', '🎹 Neon grid');
+      AppThemeMode._('synthwave', "Synthwave '84", '🎹 Neon grid');
 
   const AppThemeMode._(this.name, this.displayName, this.description);
 
@@ -21,33 +21,32 @@ class AppThemeMode {
       all.where((m) => m.name == n).firstOrNull;
 }
 
-// ─── Synthwave '84 Palette ───────────────────────────────────────────
+// ─── Synthwave '84 Palette — Omarchy Match ─────────────────────────
 
 class SynthwaveColors {
-  // Backgrounds
-  static const bgPrimary = Color(0xFF0a0a1a);
-  static const bgSecondary = Color(0xFF111133);
-  static const bgSurface = Color(0xFF1a1a44);
-  static const bgElevated = Color(0xFF222255);
+  // Backgrounds — deep purple space from Omarchy synthwave84
+  static const bgPrimary = Color(0xFF0d0221);
+  static const bgSecondary = Color(0xFF1a0030);
+  static const bgSurface = Color(0xFF240037);
+  static const bgElevated = Color(0xFF2d004d);
 
-  // Neon accents (from your Omarchy waybar.css)
-  static const neonCoral = Color(0xFFFF9B71); // @rd1
-  static const neonCyan = Color(0xFF00E5FF);
-  static const neonMagenta = Color(0xFFFF007F);
-  static const neonPurple = Color(0xFFB026FF);
-  static const neonPink = Color(0xFFFF2D95);
+  // Neon accents — purple family
+  static const neonPurple = Color(0xFF8F00FF); // @primary / active border
+  static const neonMagenta = Color(0xFFdf00ff); // secondary accent
+  static const neonPink = Color(0xFFff00ff); // tertiary accent
+  static const neonYellow = Color(0xFFFFFF66); // @foreground — warm amber
 
   // Text
-  static const textPrimary = Color(0xFFF0F0FF);
-  static const textSecondary = Color(0xFFA0A0CC);
-  static const textMuted = Color(0xFF6060AA);
+  static const textPrimary = Color(0xFFFFFF66);
+  static const textSecondary = Color(0xFFCCAA44);
+  static const textMuted = Color(0xFF663388);
 
   // Status
-  static const xpGold = Color(0xFFFFD700);
+  static const xpGold = Color(0xFFFFDD44);
   static const streakFlame = Color(0xFFFF5500);
   static const success = Color(0xFF00FF88);
-  static const warning = Color(0xFFFF9B71);
-  static const error = Color(0xFFFF007F);
+  static const warning = Color(0xFFFFFF66);
+  static const error = Color(0xFFdf00ff);
 }
 
 // ─── Theme Definitions ──────────────────────────────────────────────
@@ -57,10 +56,10 @@ class AppThemes {
         useMaterial3: true,
         brightness: Brightness.light,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFFFF9B71),
+          seedColor: const Color(0xFF8F00FF),
           brightness: Brightness.light,
-          primary: const Color(0xFFE8734A),
-          secondary: const Color(0xFF4A6FA5),
+          primary: const Color(0xFF8F00FF),
+          secondary: const Color(0xFF663388),
           surface: Colors.white,
         ),
         textTheme: GoogleFonts.poppinsTextTheme(Typography.whiteMountainView),
@@ -80,18 +79,18 @@ class AppThemes {
         useMaterial3: false,
         brightness: Brightness.dark,
         colorScheme: const ColorScheme.dark(
-          primary: Color(0xFFFF9B71),
-          secondary: Color(0xFF00E5FF),
+          primary: Color(0xFF8F00FF),
+          secondary: Color(0xFFdf00ff),
           surface: Color(0xFF1C1C2E),
           onSurface: Color(0xFFE0E0F0),
-          tertiary: Color(0xFFFF007F),
+          tertiary: Color(0xFFff00ff),
         ),
         scaffoldBackgroundColor: const Color(0xFF0C0C18),
         textTheme: GoogleFonts.interTextTheme(
           ThemeData.dark().textTheme,
         ).apply(
           bodyColor: const Color(0xFFE0E0F0),
-          displayColor: const Color(0xFFFF9B71),
+          displayColor: const Color(0xFF8F00FF),
         ),
         cardTheme: CardThemeData(
           color: const Color(0xFF1C1C2E),
@@ -115,9 +114,9 @@ class AppThemes {
         useMaterial3: false,
         brightness: Brightness.dark,
         colorScheme: const ColorScheme.dark(
-          primary: SynthwaveColors.neonCoral,
-          secondary: SynthwaveColors.neonCyan,
-          tertiary: SynthwaveColors.neonMagenta,
+          primary: SynthwaveColors.neonPurple,
+          secondary: SynthwaveColors.neonMagenta,
+          tertiary: SynthwaveColors.neonPink,
           surface: SynthwaveColors.bgSurface,
           onSurface: SynthwaveColors.textPrimary,
           background: SynthwaveColors.bgPrimary,
@@ -128,7 +127,7 @@ class AppThemes {
           ThemeData.dark().textTheme,
         ).apply(
           bodyColor: SynthwaveColors.textPrimary,
-          displayColor: SynthwaveColors.neonCoral,
+          displayColor: SynthwaveColors.neonPurple,
         ),
         cardTheme: CardThemeData(
           color: SynthwaveColors.bgSurface,
@@ -136,25 +135,25 @@ class AppThemes {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
             side: const BorderSide(
-              color: SynthwaveColors.neonCoral,
+              color: SynthwaveColors.neonPurple,
               width: 1.5,
             ),
           ),
-          shadowColor: SynthwaveColors.neonCyan.withValues(alpha: 0.3),
+          shadowColor: SynthwaveColors.neonPurple.withValues(alpha: 0.3),
         ),
         appBarTheme: const AppBarTheme(
           elevation: 0,
           scrolledUnderElevation: 0,
           centerTitle: true,
           backgroundColor: SynthwaveColors.bgPrimary,
-          foregroundColor: SynthwaveColors.neonCoral,
+          foregroundColor: SynthwaveColors.textPrimary,
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
-            backgroundColor: SynthwaveColors.neonCoral,
-            foregroundColor: SynthwaveColors.bgPrimary,
+            backgroundColor: SynthwaveColors.neonPurple,
+            foregroundColor: SynthwaveColors.bgSecondary,
             elevation: 4,
-            shadowColor: SynthwaveColors.neonCoral.withValues(alpha: 0.5),
+            shadowColor: SynthwaveColors.neonPurple.withValues(alpha: 0.5),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
@@ -172,7 +171,7 @@ class AppThemes {
         ),
         bottomNavigationBarTheme: const BottomNavigationBarThemeData(
           backgroundColor: SynthwaveColors.bgSecondary,
-          selectedItemColor: SynthwaveColors.neonCoral,
+          selectedItemColor: SynthwaveColors.neonPurple,
           unselectedItemColor: SynthwaveColors.textMuted,
           type: BottomNavigationBarType.fixed,
         ),
@@ -193,7 +192,7 @@ class AppThemes {
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: const BorderSide(
-              color: SynthwaveColors.neonCyan,
+              color: SynthwaveColors.neonMagenta,
               width: 2,
             ),
           ),

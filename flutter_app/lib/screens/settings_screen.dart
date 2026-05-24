@@ -94,6 +94,57 @@ class SettingsScreen extends ConsumerWidget {
 
             const Divider(),
 
+            // XP Test (dev)
+            Consumer(
+              builder: (context, ref, _) {
+                final data = ref.watch(habitProvider);
+                final lvl = data.level;
+                final xp = data.currentXP;
+                final bodyChild = Row(
+                  children: [
+                    Icon(Icons.science_rounded,
+                        color: const Color(0xFFAA66FF)),
+                    const SizedBox(width: 12),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('XP Test',
+                              style: TextStyle(fontWeight: FontWeight.w600)),
+                          Text('+50 XP (dev helper)',
+                              style: TextStyle(
+                                  fontSize: 12, color: Colors.grey)),
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: Text(
+                        'Lvl $lvl · $xp XP',
+                        style: GoogleFonts.rajdhani(
+                          fontSize: 13,
+                          color: const Color(0xFFAA66FF),
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: InkWell(
+                    onTap: () => ref.read(habitProvider.notifier).addQuickXP(50),
+                    borderRadius: BorderRadius.circular(16),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 14),
+                      child: bodyChild,
+                    ),
+                  ),
+                );
+              },
+            ),
+
             // Reset All Data
             ListTile(
               leading: Icon(Icons.delete_sweep_rounded,
@@ -126,7 +177,7 @@ class SettingsScreen extends ConsumerWidget {
                 child: Column(
                   children: [
                     Text(
-                      'Open Habit v0.2.0',
+                      'Open Habit v0.5.0',
                       style: GoogleFonts.rajdhani(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,

@@ -54,7 +54,7 @@ class StatBarWidget extends StatelessWidget {
                       ),
                       if (!compact)
                         Text(
-                          'Level ${stat.level}',
+                          '${stat.level}',
                           style: GoogleFonts.rajdhani(
                             fontSize: 11,
                             color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
@@ -63,23 +63,36 @@ class StatBarWidget extends StatelessWidget {
                     ],
                   ),
                 ),
-                if (!compact) ...[
-                  Text(
-                    'Lv. ${stat.level}',
-                    style: GoogleFonts.rajdhani(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: accentColor,
+                if (!compact)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: accentColor.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      'Lv. ${stat.level}',
+                      style: GoogleFonts.rajdhani(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: accentColor,
+                      ),
                     ),
                   ),
-                ],
                 if (compact)
-                  Text(
-                    '${stat.level}',
-                    style: GoogleFonts.rajdhani(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: accentColor,
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: accentColor.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      '${stat.level}',
+                      style: GoogleFonts.rajdhani(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: accentColor,
+                      ),
                     ),
                   ),
               ],
