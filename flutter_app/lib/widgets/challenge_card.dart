@@ -108,19 +108,25 @@ class ChallengeCardWidget extends StatelessWidget {
                 ),
               ),
               if (!challenge.completed && onProgress != null)
-                TextButton.icon(
+                ElevatedButton(
                   onPressed: onProgress,
-                  icon: const Icon(Icons.add, size: 16),
-                  label: Text(
-                    'Progress',
-                    style: GoogleFonts.rajdhani(fontSize: 12),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: challenge.shouldAutoComplete
+                        ? theme.colorScheme.primary
+                        : theme.colorScheme.secondary.withValues(alpha: 0.15),
+                    foregroundColor: challenge.shouldAutoComplete
+                        ? theme.colorScheme.onPrimary
+                        : theme.colorScheme.secondary,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                    textStyle: GoogleFonts.rajdhani(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
                   ),
-                  style: TextButton.styleFrom(
-                    foregroundColor: theme.colorScheme.secondary,
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
+                  child: Text(challenge.shouldAutoComplete ? 'Complete!' : '+1'),
                 ),
             ],
           ),

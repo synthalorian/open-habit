@@ -6,7 +6,6 @@
     android:layout_height="match_parent"
     android:layout_margin="8dp"
     android:orientation="vertical"
-    android:background="@drawable/widget_background"
     android:padding="10dp">
 
     <TextView
@@ -14,16 +13,17 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textSize="12sp"
-        android:textColor="#FF9B71"
+        android:textColor="#FFFFFFFF"
         android:textStyle="bold"
         tools:text="Mon, May 21" />
 
-    <View
+    <TextView
+        android:id="@+id/quick_toggle_divider"
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:layout_marginTop="4dp"
         android:layout_marginBottom="6dp"
-        android:background="#33FF9B71" />
+        android:background="#33FFFFFF" />
 
     <TextView
         android:id="@+id/habit_1"

@@ -167,6 +167,7 @@ class ChallengeData {
   int progress;
   final int target;
   String status; // active, completed, failed
+  final bool oneClick; // true = progressChallenge calls complete it in one tap
 
   ChallengeData({
     required this.id,
@@ -176,6 +177,7 @@ class ChallengeData {
     this.progress = 0,
     this.target = 5,
     this.status = 'active',
+    this.oneClick = false,
   });
 
   Map<String, dynamic> toJson() => {
@@ -186,6 +188,7 @@ class ChallengeData {
         'progress': progress,
         'target': target,
         'status': status,
+        'one_click': oneClick,
       };
 
   factory ChallengeData.fromJson(Map<String, dynamic> json) => ChallengeData(
@@ -196,9 +199,11 @@ class ChallengeData {
         progress: (json['progress'] as num?)?.toInt() ?? 0,
         target: (json['target'] as num?)?.toInt() ?? 5,
         status: json['status'] as String? ?? 'active',
+        oneClick: json['one_click'] as bool? ?? false,
       );
 
   bool get isCompleted => status == 'completed';
+  bool get shouldAutoComplete => oneClick;
 }
 
 class StatData {
@@ -387,18 +392,40 @@ class LocalDatabaseService extends ChangeNotifier {
       isBad: habit.isBad,
     );
 
+    // ── Bad habit relapse penalty ─────────────────────────────────────────────
+    // completed after a gap (newStreak==1 but old streak>0) = relapse detected.
+    // Drains 30% of in-stat XP + flat penalty proportional to gap days.
+    if (habit.isBad && newStreak == 1 && habit.streakCount > 0) {
+      final prevStr = habit.lastCompleted ?? today;
+      final gapDays = DateTime.now()
+              .difference(DateTime.parse('${prevStr}T00:00:00'))
+              .inDays
+              .clamp(1, 365);
+      final penalty = gapDays * 10; // 10 XP per gap day, flat
+      for (var i = 0; i < _stats.length; i++) {
+        final stat = _stats[i];
+        final mappings = _parseCategoryMappings(stat.categoryMappings);
+        if (mappings.contains(habit.category)) {
+          // Drain 30% of accumulated XP to show the relapse visually
+          stat.xpInStat = (stat.xpInStat * 0.7).floor();
+          // Flat penalty from total
+          stat.xpInStat = (stat.xpInStat - penalty).clamp(0, stat.xpInStat);
+        }
+      }
+    }
+
     // Calculate XP
     final base = _baseXp(habit.difficulty);
-    final bonus = newStreak > 1 ? newStreak * 5 : 0;
+    final bonus = newStreak > 1 ? (newStreak - 1) * 5 : 0;
     final totalAwarded = base + bonus;
 
-    // Award stat XP based on category matching
+    // Award stat XP based on category matching (balanced, per-completion formula)
     final habitCategory = habit.category;
     for (var i = 0; i < _stats.length; i++) {
       final stat = _stats[i];
       final mappings = _parseCategoryMappings(stat.categoryMappings);
       if (mappings.contains(habitCategory)) {
-        _awardStatXp(i, totalAwarded ~/ 2); // half the XP to matching stat
+        _awardStatXp(i, _statXp(totalAwarded));
       }
     }
 
@@ -479,10 +506,11 @@ class LocalDatabaseService extends ChangeNotifier {
       }
     }
 
-    // Persist everything
+    // Persist everything — stats included so RB/RP listeners always see canonical state
     await _persist('oh_habits', _habits.map((h) => h.toJson()).toList());
     await _persist('oh_progression', _progression.toJson());
     await _persist('oh_achievements', _achievements.map((a) => a.toJson()).toList());
+    await _persist('oh_stats', _stats.map((s) => s.toJson()).toList());
 
     notifyListeners();
 
@@ -505,7 +533,11 @@ class LocalDatabaseService extends ChangeNotifier {
     if (idx < 0) throw Exception('Challenge not found');
 
     final c = _challenges[idx];
-    final newProgress = (c.progress + amount).clamp(0, c.target);
+    // One-click challenges jump straight to completion when touched
+    final effectiveAmount = c.shouldAutoComplete
+        ? (c.target - c.progress).clamp(1, c.target)
+        : amount;
+    final newProgress = (c.progress + effectiveAmount).clamp(0, c.target);
     final completed = newProgress >= c.target;
 
     _challenges[idx] = ChallengeData(
@@ -516,6 +548,7 @@ class LocalDatabaseService extends ChangeNotifier {
       progress: newProgress,
       target: c.target,
       status: completed ? 'completed' : 'active',
+      oneClick: c.shouldAutoComplete,
     );
 
     if (completed) {
@@ -527,6 +560,21 @@ class LocalDatabaseService extends ChangeNotifier {
     notifyListeners();
     WidgetDataService.pushAll(this);
     return _challenges[idx];
+  }
+
+  // ── Quick XP (dev/test helper) ────────────────────────────────────────────
+
+  Future<void> addQuickXP(int amount) async {
+    _progression.totalXp += amount;
+    // Run level-up check
+    while (_progression.totalXp >= _progression.xpToNext) {
+      _progression.totalXp -= _progression.xpToNext;
+      _progression.level += 1;
+      _progression.xpToNext = _progression.level * 100;
+    }
+    await _persist('oh_progression', _progression.toJson());
+    notifyListeners();
+    WidgetDataService.pushAll(this);
   }
 
   // ─── Stat Operations ──────────────────────────────────────────────────
@@ -617,6 +665,22 @@ class LocalDatabaseService extends ChangeNotifier {
     }
   }
 
+  // Per-completion stat XP: 75% phrase scaled by difficulty, no streak bonus
+  // easy=8, medium=20, hard=40, extreme=80
+  // Balanced so 2–3 daily habits visibly grow stats without breaking total XP economy
+  int _statXp(int totalAwarded) {
+    final base = _baseXpForStat(totalAwarded);
+    // No streak bonus on stat XP — stat XP comes from consistency of completions
+    return base;
+  }
+
+  int _baseXpForStat(int total) {
+    if (total >= 100) return 80;  // extreme
+    if (total >= 50) return 40;   // hard
+    if (total >= 25) return 20;   // medium
+    return 8;                     // easy
+  }
+
   void _awardStatXp(int statIdx, int amount) {
     final stat = _stats[statIdx];
     stat.xpInStat += amount;
@@ -628,8 +692,7 @@ class LocalDatabaseService extends ChangeNotifier {
       stat.xpToNext = stat.level * 100;
     }
 
-    // Persist stats (fire-and-forget)
-    _persist('oh_stats', _stats.map((s) => s.toJson()).toList());
+    // Stat data will be persisted by the caller after all mutations are done
   }
 
   List<AchievementData> _defaultAchievements() => [
@@ -645,9 +708,44 @@ class LocalDatabaseService extends ChangeNotifier {
       ];
 
   List<ChallengeData> _generateDailyChallenges() => [
+        // ── Fitness ──────────────────────────────────────────────
         ChallengeData(id: 'ch_daily_1', title: 'Hydration Hero', description: 'Drink 8 glasses of water today', xpReward: 30, target: 8),
-        ChallengeData(id: 'ch_daily_2', title: 'Step Up', description: 'Walk 5,000 steps', xpReward: 25, target: 5000),
+        ChallengeData(id: 'ch_daily_2', title: 'Step Up', description: 'Walk 5,000 steps', xpReward: 25, target: 5000, oneClick: true),
         ChallengeData(id: 'ch_daily_3', title: 'Mindful Minute', description: 'Meditate for 5 minutes', xpReward: 20, target: 5),
+        ChallengeData(id: 'ch_daily_4', title: 'Morning Push-ups', description: 'Do 25 push-ups', xpReward: 35, target: 25),
+        ChallengeData(id: 'ch_daily_5', title: '10K Steps', description: 'Crush 10,000 steps today', xpReward: 50, target: 10000, oneClick: true),
+        ChallengeData(id: 'ch_daily_6', title: 'Stretch It Out', description: '10-minute full body stretch', xpReward: 20, target: 10),
+        ChallengeData(id: 'ch_daily_7', title: 'Plank Master', description: 'Hold plank for 2 minutes total', xpReward: 30, target: 120),
+        ChallengeData(id: 'ch_daily_8', title: 'Bike or Run', description: '30 minutes of cycling or running', xpReward: 40, target: 30),
+        ChallengeData(id: 'ch_daily_9', title: 'Jump Rope', description: '500 jump rope skips', xpReward: 35, target: 500),
+        ChallengeData(id: 'ch_daily_10', title: 'Yoga Flow', description: 'Complete a 20-minute yoga session', xpReward: 30, target: 20),
+        // ── Learning ─────────────────────────────────────────────
+        ChallengeData(id: 'ch_daily_11', title: 'Deep Dive', description: 'Read 30 pages of a book', xpReward: 30, target: 30),
+        ChallengeData(id: 'ch_daily_12', title: 'Language Practice', description: '15 minutes studying a new language', xpReward: 25, target: 15),
+        ChallengeData(id: 'ch_daily_13', title: 'Podcast Hour', description: 'Listen to a full educational podcast episode', xpReward: 25, target: 60),
+        ChallengeData(id: 'ch_daily_14', title: 'Coding Session', description: 'Write code for 45 minutes', xpReward: 40, target: 45),
+        ChallengeData(id: 'ch_daily_15', title: 'Skill Builder', description: '30 minutes of deliberate practice', xpReward: 30, target: 30),
+        ChallengeData(id: 'ch_daily_16', title: 'Article Deep-Read', description: 'Read and take notes on 3 medium articles', xpReward: 25, target: 3),
+        // ── Social ───────────────────────────────────────────────
+        ChallengeData(id: 'ch_daily_17', title: 'Outreach', description: 'Reach out to 2 friends or family', xpReward: 30, target: 2),
+        ChallengeData(id: 'ch_daily_18', title: 'Compliment Spree', description: 'Give 3 genuine compliments', xpReward: 20, target: 3),
+        ChallengeData(id: 'ch_daily_19', title: 'Community Builder', description: 'Attend or organize a community event', xpReward: 40, target: 1),
+        ChallengeData(id: 'ch_daily_20', title: 'Handwritten Letter', description: 'Write and send a handwritten note', xpReward: 25, target: 1),
+        // ── Finance ──────────────────────────────────────────────
+        ChallengeData(id: 'ch_daily_21', title: 'Expense Logger', description: 'Log every expense for the day', xpReward: 25, target: 5),
+        ChallengeData(id: 'ch_daily_22', title: 'No Impulse', description: 'Go 24 hours without an unplanned purchase', xpReward: 35, target: 24),
+        ChallengeData(id: 'ch_daily_23', title: 'Investor Hour', description: 'Read investing material for 20 minutes', xpReward: 30, target: 20),
+        // ── Creative ─────────────────────────────────────────────
+        ChallengeData(id: 'ch_daily_24', title: 'Creator Hour', description: 'Work on a creative project for 60 minutes', xpReward: 40, target: 60),
+        ChallengeData(id: 'ch_daily_25', title: 'Photo Walk', description: 'Take 10 creative photographs', xpReward: 30, target: 10),
+        ChallengeData(id: 'ch_daily_26', title: 'Jam Session', description: 'Play or compose music for 30 minutes', xpReward: 35, target: 30),
+        // ── Mindfulness / General ────────────────────────────────
+        ChallengeData(id: 'ch_daily_27', title: 'Sunrise Greeter', description: 'Watch the sun come up (or check in with the sky)', xpReward: 25, target: 1),
+        ChallengeData(id: 'ch_daily_28', title: 'Digital Sunset', description: 'No screens 1 hour before bed', xpReward: 30, target: 60),
+        // ── Nutrition ────────────────────────────────────────────
+        ChallengeData(id: 'ch_daily_29', title: 'Veggie Smash', description: 'Eat 5 servings of vegetables today', xpReward: 30, target: 5),
+        ChallengeData(id: 'ch_daily_30', title: 'No Added Sugar', description: 'Zero added sugar for the full day', xpReward: 40, target: 1),
+        ChallengeData(id: 'ch_daily_31', title: 'Home Cooked', description: 'Cook and eat a totally from-scratch meal', xpReward: 30, target: 1),
       ];
 
   List<StatData> _defaultStats() => [

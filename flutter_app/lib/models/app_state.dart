@@ -38,6 +38,7 @@ class AppChallenge {
   final int progress;
   final int target;
   final bool completed;
+  final bool oneClick;
 
   const AppChallenge({
     required this.id,
@@ -47,7 +48,10 @@ class AppChallenge {
     required this.progress,
     required this.target,
     this.completed = false,
+    this.oneClick = false,
   });
+
+  bool get shouldAutoComplete => oneClick;
 
   AppChallenge copyWith({
     String? id,
@@ -57,6 +61,7 @@ class AppChallenge {
     int? progress,
     int? target,
     bool? completed,
+    bool? oneClick,
   }) {
     return AppChallenge(
       id: id ?? this.id,
@@ -66,6 +71,7 @@ class AppChallenge {
       progress: progress ?? this.progress,
       target: target ?? this.target,
       completed: completed ?? this.completed,
+      oneClick: oneClick ?? this.oneClick,
     );
   }
 }

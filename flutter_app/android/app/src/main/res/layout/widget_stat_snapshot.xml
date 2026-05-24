@@ -6,23 +6,24 @@
     android:layout_height="match_parent"
     android:layout_margin="8dp"
     android:orientation="vertical"
-    android:background="@drawable/widget_background"
     android:padding="10dp">
 
     <TextView
+        android:id="@+id/stats_header"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textSize="12sp"
-        android:textColor="#00FFFF"
+        android:textColor="#FFFFFFFF"
         android:textStyle="bold"
         android:text="⬡ STATS" />
 
-    <View
+    <TextView
+        android:id="@+id/stats_divider"
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:layout_marginTop="3dp"
         android:layout_marginBottom="5dp"
-        android:background="#3300FFFF" />
+        android:background="#33FFFFFF" />
 
     <TextView
         android:id="@+id/stat_1"
