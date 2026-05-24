@@ -110,19 +110,39 @@ class StatsScreen extends ConsumerWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   SectionHeader(title: 'RPG Stats'),
-                  TextButton.icon(
-                    onPressed: () async {
-                      final result = await showDialog<bool>(
-                        context: context,
-                        builder: (_) => const StatCreateDialog(),
-                      );
-                      if (result == true) {
-                        ref.read(habitProvider.notifier).refresh();
-                      }
-                    },
-                    icon: const Icon(Icons.add, size: 16),
-                    label: Text('New Stat',
-                        style: GoogleFonts.rajdhani(fontSize: 12)),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextButton.icon(
+                        onPressed: () async {
+                          final result = await showDialog<bool>(
+                            context: context,
+                            builder: (_) => const StatDisciplineDialog(),
+                          );
+                          if (result == true) {
+                            ref.read(habitProvider.notifier).refresh();
+                          }
+                        },
+                        icon: const Icon(Icons.fitness_center, size: 16),
+                        label: Text('Log Discipline',
+                            style: GoogleFonts.rajdhani(fontSize: 12)),
+                      ),
+                      const SizedBox(width: 4),
+                      TextButton.icon(
+                        onPressed: () async {
+                          final result = await showDialog<bool>(
+                            context: context,
+                            builder: (_) => const StatCreateDialog(),
+                          );
+                          if (result == true) {
+                            ref.read(habitProvider.notifier).refresh();
+                          }
+                        },
+                        icon: const Icon(Icons.add, size: 16),
+                        label: Text('New Stat',
+                            style: GoogleFonts.rajdhani(fontSize: 12)),
+                      ),
+                    ],
                   ),
                 ],
               ),

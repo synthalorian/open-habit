@@ -17,6 +17,7 @@ class HabitData {
   String? lastCompleted; // YYYY-MM-DD
   final String createdAt;
   final bool isBad;
+  final bool isDaily;
 
   HabitData({
     required this.id,
@@ -28,6 +29,7 @@ class HabitData {
     this.lastCompleted,
     String? createdAt,
     this.isBad = false,
+    this.isDaily = false,
   }) : createdAt = createdAt ?? _today();
 
   Map<String, dynamic> toJson() => {
@@ -39,20 +41,23 @@ class HabitData {
         'streak_count': streakCount,
         'last_completed': lastCompleted,
         'created_at': createdAt,
+        'is_daily': isDaily,
       };
 
   factory HabitData.fromJson(Map<String, dynamic> json) {
     final rawName = json['name'] as String? ?? '';
-    final isBad = rawName.startsWith('🚫 ');
-    return HabitData(
-      id: json['id'] as String? ?? const Uuid().v4(),
-      name: isBad ? rawName.substring(2) : rawName,
-      category: json['category'] as String? ?? 'General',
-      difficulty: json['difficulty'] as String? ?? 'easy',
-      xpReward: (json['xp_reward'] as num?)?.toInt() ?? 10,
-      streakCount: (json['streak_count'] as num?)?.toInt() ?? 0,
-      lastCompleted: json['last_completed'] as String?,
-      createdAt: json['created_at'] as String?,
+      final isBad = rawName.startsWith('🚫 ');
+      final isDaily = json['is_daily'] as bool? ?? false;
+      return HabitData(
+        id: json['id'] as String? ?? const Uuid().v4(),
+        name: isBad ? rawName.substring(2) : rawName,
+        category: json['category'] as String? ?? 'General',
+        difficulty: json['difficulty'] as String? ?? 'easy',
+        xpReward: (json['xp_reward'] as num?)?.toInt() ?? 10,
+        streakCount: (json['streak_count'] as num?)?.toInt() ?? 0,
+        lastCompleted: json['last_completed'] as String?,
+        createdAt: json['created_at'] as String?,
+
       isBad: isBad,
     );
   }
@@ -215,6 +220,8 @@ class StatData {
   int xpInStat;
   int level;
   int xpToNext;
+  int decayAmount;
+  int dailyAllCompleteStreak;
 
   StatData({
     String? id,
@@ -225,6 +232,8 @@ class StatData {
     this.xpInStat = 0,
     this.level = 1,
     this.xpToNext = 100,
+    this.decayAmount = 0,
+    this.dailyAllCompleteStreak = 0,
   }) : id = id ?? const Uuid().v4();
 
   Map<String, dynamic> toJson() => {
@@ -236,6 +245,8 @@ class StatData {
         'xp_in_stat': xpInStat,
         'level': level,
         'xp_to_next': xpToNext,
+        'decay_amount': decayAmount,
+        'daily_streak': dailyAllCompleteStreak,
       };
 
   factory StatData.fromJson(Map<String, dynamic> json) => StatData(
@@ -247,6 +258,8 @@ class StatData {
         xpInStat: (json['xp_in_stat'] as num?)?.toInt() ?? 0,
         level: (json['level'] as num?)?.toInt() ?? 1,
         xpToNext: (json['xp_to_next'] as num?)?.toInt() ?? 100,
+        decayAmount: (json['decay_amount'] as num?)?.toInt() ?? 0,
+        dailyAllCompleteStreak: (json['daily_streak'] as num?)?.toInt() ?? 0,
       );
 
   double get progress => xpToNext > 0 ? (xpInStat / xpToNext).clamp(0.0, 1.0) : 0.0;
@@ -274,16 +287,22 @@ class LocalDatabaseService extends ChangeNotifier {
   List<ChallengeData> _challenges = [];
   List<StatData> _stats = [];
   ProgressionData _progression = ProgressionData();
+  List<Map<String, dynamic>> _disciplineLog = [];
+  int _dailyAllCompleteStreak = 0;
 
   // Getters
   List<HabitData> get habits => List.unmodifiable(_habits);
   List<AchievementData> get achievements => List.unmodifiable(_achievements);
   List<ChallengeData> get challenges => List.unmodifiable(_challenges);
   List<StatData> get stats => List.unmodifiable(_stats);
+  List<Map<String, dynamic>> get disciplineLog =>
+      List.unmodifiable(_disciplineLog);
+  int get dailyAllCompleteStreak => _dailyAllCompleteStreak;
   ProgressionData get progression => _progression;
 
   Future<void> init() async {
     if (_initialized) return;
+    _applyStatDecay();
     final prefs = await SharedPreferences.getInstance();
 
     // Load habits
@@ -330,6 +349,24 @@ class LocalDatabaseService extends ChangeNotifier {
           .toList();
     } else {
       _stats = _defaultStats();
+    }
+
+    // Load discipline log
+    final dlJson = prefs.getString('oh_discipline_log');
+    if (dlJson != null) {
+      _disciplineLog = (json.decode(dlJson) as List)
+          .cast<Map<String, dynamic>>()
+          .toList();
+    }
+
+    // Compute multi-habit daily streak from completion history
+    _computeDailyHabitStreak();
+
+    // Apply stat decay from bad habits before notifying listeners
+    _applyStatDecay();
+    if (_disciplineLog.isNotEmpty) {
+      await _persist(
+          'oh_discipline_log', _disciplineLog.where((e) => e['decay'] == true).toList());
     }
 
     _initialized = true;
@@ -665,20 +702,20 @@ class LocalDatabaseService extends ChangeNotifier {
     }
   }
 
-  // Per-completion stat XP: 75% phrase scaled by difficulty, no streak bonus
-  // easy=8, medium=20, hard=40, extreme=80
-  // Balanced so 2–3 daily habits visibly grow stats without breaking total XP economy
+  // Stat XP: 40% of total XP per completion, streaked 2%/day
+  // easy=4, medium=10, hard=20, extreme=40 base stat XP
+  // 2-day streak = +8%; easy two-a-day (8 XP each) visibly grows stats / day
   int _statXp(int totalAwarded) {
-    final base = _baseXpForStat(totalAwarded);
-    // No streak bonus on stat XP — stat XP comes from consistency of completions
-    return base;
+    final base = ((totalAwarded * 0.40).floor()).clamp(4, 999);
+    final bonus = (base * (_dailyAllCompleteStreak * 0.02)).floor();
+    return base + bonus;
   }
 
   int _baseXpForStat(int total) {
-    if (total >= 100) return 80;  // extreme
-    if (total >= 50) return 40;   // hard
-    if (total >= 25) return 20;   // medium
-    return 8;                     // easy
+    if (total >= 100) return 100; // extreme
+    if (total >= 50) return 50;   // hard
+    if (total >= 25) return 25;   // medium
+    return 10;                     // easy — bumped from 8 so 2 daily habits show growth
   }
 
   void _awardStatXp(int statIdx, int amount) {
@@ -693,6 +730,132 @@ class LocalDatabaseService extends ChangeNotifier {
     }
 
     // Stat data will be persisted by the caller after all mutations are done
+  }
+
+  // ─── Stat Discipline ─────────────────────────────────────────────────────
+
+  /// Log a discipline entry and award stat XP directly (not through habits).
+  /// Returns the number of levels gained from this award.
+  Future<int> addDisciplineLog({
+    required String statId,
+    required int amount,
+    String? note,
+    DateTime? when,
+  }) async {
+    final idx = _stats.indexWhere((s) => s.id == statId);
+    if (idx < 0) throw Exception('Stat not found');
+
+    final levelsGained = addStatXP(statId, amount);
+
+    _disciplineLog.add({
+      'stat_id': statId,
+      'amount': amount,
+      'note': note ?? '',
+      'timestamp': (when ?? DateTime.now()).toIso8601String(),
+    });
+    await _persist('oh_discipline_log', _disciplineLog);
+
+    return levelsGained;
+  }
+
+  /// Add XP directly to a stat by id with automatic level-up handling.
+  /// Returns number of levels gained.
+  int addStatXP(String statId, int amount) {
+    final idx = _stats.indexWhere((s) => s.id == statId);
+    if (idx < 0) return 0;
+    final stat = _stats[idx];
+    stat.xpInStat += amount;
+    int levelsGained = 0;
+    while (stat.xpInStat >= stat.xpToNext) {
+      stat.xpInStat -= stat.xpToNext;
+      stat.level++;
+      stat.xpToNext = stat.level * 100;
+      levelsGained++;
+    }
+    return levelsGained;
+  }
+
+  // ─── Stat Decay ───────────────────────────────────────────────────────────
+  // Bad habits rot the stats they're mapped to. On init, check each stat for
+  // mapped bad habits that haven't been responded to in 3+ days and drain
+  // a percentage of accumulated XP. Decay is recorded to the discipline log.
+
+  // ─── Multi-Habit Daily Streak ─────────────────────────────────────────
+  // Counts consecutive days (going backward from today) where ALL daily
+  // habits were completed. Stored in _dailyAllCompleteStreak and used as a
+  // stat XP multiplier (+10% per day, capped at +50%).
+  void _computeDailyHabitStreak() {
+    final dailyHabits = _habits.where((h) => h.isDaily).toList();
+    if (dailyHabits.isEmpty) {
+      _dailyAllCompleteStreak = 0;
+      return;
+    }
+    final today = DateTime.now();
+    int streak = 0;
+    for (var daysBack = 0; daysBack < 14; daysBack++) {
+      final day = DateTime(today.year, today.month, today.day - daysBack);
+      final dayStr = _fmt(day);
+      final allDone = dailyHabits.every((h) => h.lastCompleted == dayStr);
+      if (!allDone) break;
+      streak++;
+    }
+    _dailyAllCompleteStreak = streak;
+    for (final stat in _stats) {
+      stat.dailyAllCompleteStreak = streak;
+    }
+  }
+
+  String _fmt(DateTime d) => '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
+  void _applyStatDecay() {
+    final today = DateTime.now();
+    for (var statIdx = 0; statIdx < _stats.length; statIdx++) {
+      final stat = _stats[statIdx];
+      final mappedCats = _parseCategoryMappings(stat.categoryMappings);
+      if (mappedCats.isEmpty) continue;
+
+      // Find mapped bad habits
+      final mappedBadHabits = _habits
+          .where((h) =>
+              h.isBad &&
+              mappedCats.contains(h.category) &&
+              h.lastCompleted != null)
+          .toList();
+      if (mappedBadHabits.isEmpty) continue;
+
+      // Determine the worst-gap (days since last completion)
+      int worstGapDays = 0;
+      for (final h in mappedBadHabits) {
+        final lastDone = DateTime.parse('${h.lastCompleted}T00:00:00');
+        final gap = today.difference(lastDone).inDays;
+        if (gap > worstGapDays) worstGapDays = gap;
+      }
+
+      // Decay only kicks in after 3 days of ignoring the habit
+      if (worstGapDays < 3) continue;
+
+      // Decay: 5% per day beyond the 3-day grace period, capped at 50%
+      final decayPercent = ((worstGapDays - 3) * 0.05).clamp(0.0, 0.5);
+      if (decayPercent <= 0.0) continue;
+      final drainAmt = (stat.xpInStat * decayPercent).floor();
+      if (drainAmt <= 0) continue;
+
+      stat.xpInStat -= drainAmt;
+      stat.decayAmount = drainAmt;
+      _disciplineLog.add({
+        'stat_id': stat.id,
+        'amount': -drainAmt,
+        'note': 'Stat decay from $worstGapDays day gap (bad habit)',
+        'timestamp': today.toIso8601String(),
+        'decay': true,
+      });
+      // Clamp level-up drains to avoid underflow for very low XP
+      while (stat.level > 1 && stat.xpInStat < 0) {
+        stat.level--;
+        stat.xpToNext = stat.level * 100;
+        stat.xpInStat += stat.xpToNext;
+      }
+    }
   }
 
   List<AchievementData> _defaultAchievements() => [
@@ -745,7 +908,31 @@ class LocalDatabaseService extends ChangeNotifier {
         // ── Nutrition ────────────────────────────────────────────
         ChallengeData(id: 'ch_daily_29', title: 'Veggie Smash', description: 'Eat 5 servings of vegetables today', xpReward: 30, target: 5),
         ChallengeData(id: 'ch_daily_30', title: 'No Added Sugar', description: 'Zero added sugar for the full day', xpReward: 40, target: 1),
-        ChallengeData(id: 'ch_daily_31', title: 'Home Cooked', description: 'Cook and eat a totally from-scratch meal', xpReward: 30, target: 1),
+        // ── Lifestyle ─────────────────────────────────────────────
+        ChallengeData(id: 'ch_daily_31', title: 'Cold Plunge', description: 'Finish a cold shower or ice bath', xpReward: 35, target: 1),
+        ChallengeData(id: 'ch_daily_32', title: 'Flo', description: 'Float nest (zero stimulation for 20 minutes)', xpReward: 25, target: 1),
+        ChallengeData(id: 'ch_daily_33', title: 'Dogs', description: 'Pet or visit a friendly dog', xpReward: 15, target: 1),
+        ChallengeData(id: 'ch_daily_34', title: 'Water Only', description: 'Drink only water for an entire day', xpReward: 25, target: 1),
+        ChallengeData(id: 'ch_daily_35', title: 'Good Lit', description: 'Read at least 15 pages of a fiction book', xpReward: 20, target: 15),
+        // Productivity
+        ChallengeData(id: 'ch_daily_36', title: 'Deep Work', description: '90 minutes of uninterrupted focused work', xpReward: 45, target: 90),
+        ChallengeData(id: 'ch_daily_37', title: 'Email Zero', description: 'Respond to every unread email in your inbox', xpReward: 20, target: 1),
+        ChallengeData(id: 'ch_daily_38', title: 'Inbox Zero', description: 'Clear every item from your task inbox', xpReward: 25, target: 1),
+        ChallengeData(id: 'ch_daily_39', title: 'Calendar Clean', description: "Block out tomorrow's top priorities on your calendar", xpReward: 20, target: 3),
+        // Creative
+        ChallengeData(id: 'ch_daily_40', title: 'Doodle Time', description: 'Draw something for 10 minutes (any medium)', xpReward: 20, target: 10),
+        ChallengeData(id: 'ch_daily_41', title: 'Piano Time', description: 'Practice piano for at least 20 minutes', xpReward: 25, target: 20),
+        ChallengeData(id: 'ch_daily_42', title: 'Story Seed', description: 'Write the first 200 words of a story', xpReward: 25, target: 200),
+        ChallengeData(id: 'ch_daily_43', title: 'Film Strip', description: 'Watch and review a short film (under 30 minutes)', xpReward: 20, target: 1),
+        // Mindfulness / General
+        ChallengeData(id: 'ch_daily_44', title: 'Gratitude List', description: "Write down 5 things you're grateful for today", xpReward: 20, target: 5),
+        ChallengeData(id: 'ch_daily_45', title: 'Three Good Things', description: 'Name 3 positive events that happened today', xpReward: 15, target: 3),
+        ChallengeData(id: 'ch_daily_46', title: 'Breathe Box', description: '4-4-4-4 breathing exercise for 2 full minutes', xpReward: 25, target: 2),
+        ChallengeData(id: 'ch_daily_47', title: 'Power Nap', description: 'Take a 20-minute intentional nap', xpReward: 20, target: 1),
+        // Finance / Self
+        ChallengeData(id: 'ch_daily_48', title: 'Portfolio Check', description: 'Review your investment positions for 10 minutes', xpReward: 25, target: 10),
+        ChallengeData(id: 'ch_daily_49', title: r'Five Dollar Creative Challenge', description: r'Do something constructive with just $5, no excuses', xpReward: 20, target: 1),
+        ChallengeData(id: 'ch_daily_50', title: 'No Phone First 30', description: 'First 30 min of your day without touching your phone', xpReward: 30, target: 1),
       ];
 
   List<StatData> _defaultStats() => [

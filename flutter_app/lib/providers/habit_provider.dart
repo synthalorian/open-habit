@@ -47,6 +47,8 @@ class HabitNotifier extends Notifier<AppData> {
             icon: s.icon,
             color: s.color,
             categoryMappings: s.categoryMappings,
+            decayAmount: s.decayAmount,
+            dailyAllCompleteStreak: s.dailyAllCompleteStreak,
           )).toList(),
       recommendations: const [],
       isLoading: false,
@@ -180,6 +182,17 @@ class HabitNotifier extends Notifier<AppData> {
 
   Future<void> addQuickXP(int amount) async {
     await _db.addQuickXP(amount);
+  }
+
+  // ─── Discipline ────────────────────────────────────────────────────────────
+
+  /// Log a discipline entry: earn stat XP directly (not tied to a habit).
+  Future<int> logDiscipline({
+    required String statId,
+    required int amount,
+    String? note,
+  }) async {
+    return await _db.addDisciplineLog(statId: statId, amount: amount, note: note);
   }
 
   // ─── Reset ────────────────────────────────────────────────────────────────

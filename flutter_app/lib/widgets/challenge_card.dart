@@ -126,7 +126,24 @@ class ChallengeCardWidget extends StatelessWidget {
                       borderRadius: BorderRadius.circular(20),
                     ),
                   ),
-                  child: Text(challenge.shouldAutoComplete ? 'Complete!' : '+1'),
+                  child: Text(challenge.shouldAutoComplete ? 'GO!' : '+1'),
+                ),
+                // extra glow for one-click challenges
+                NeonCard(
+                  neonGlow: challenge.shouldAutoComplete,
+                  padding: EdgeInsets.zero,
+                  borderRadius: 20,
+                  child: AnimatedOpacity(
+                    opacity: 0.12,
+                    duration: const Duration(milliseconds: 1200),
+                    child: Container(
+                      width: 4,
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.secondary,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                    ),
+                  ),
                 ),
             ],
           ),

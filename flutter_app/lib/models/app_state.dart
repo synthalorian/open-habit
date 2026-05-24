@@ -111,7 +111,9 @@ class PlayerStat {
   int xpToNext;
   String icon;
   String color;
-  String categoryMappings; // JSON array of category strings
+  String categoryMappings;
+  int decayAmount;
+  int dailyAllCompleteStreak;
 
   PlayerStat({
     required this.id,
@@ -122,7 +124,9 @@ class PlayerStat {
     required this.xpToNext,
     required this.icon,
     required this.color,
-    required this.categoryMappings,
+    this.categoryMappings = '',
+    this.decayAmount = 0,
+    this.dailyAllCompleteStreak = 0,
   });
 
   factory PlayerStat.fromJson(Map<String, dynamic> json) {
@@ -136,6 +140,8 @@ class PlayerStat {
       icon: json['icon'] as String,
       color: json['color'] as String,
       categoryMappings: json['category_mappings'] as String,
+      decayAmount: (json['decay_amount'] as num?)?.toInt() ?? 0,
+      dailyAllCompleteStreak: (json['daily_streak'] as num?)?.toInt() ?? 0,
     );
   }
 
@@ -149,6 +155,8 @@ class PlayerStat {
     'icon': icon,
     'color': color,
     'category_mappings': categoryMappings,
+    'decay_amount': decayAmount,
+    'daily_streak': dailyAllCompleteStreak,
   };
 
   double get progress => xpToNext > 0 ? (xpInStat / xpToNext).clamp(0.0, 1.0) : 0.0;
