@@ -119,7 +119,6 @@ class AppThemes {
           tertiary: SynthwaveColors.neonPink,
           surface: SynthwaveColors.bgSurface,
           onSurface: SynthwaveColors.textPrimary,
-          background: SynthwaveColors.bgPrimary,
           error: SynthwaveColors.error,
         ),
         scaffoldBackgroundColor: SynthwaveColors.bgPrimary,

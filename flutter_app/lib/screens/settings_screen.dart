@@ -23,7 +23,6 @@ class SettingsScreen extends ConsumerWidget {
       body: GradientSettingsBackground(
         child: ListView(
           children: [
-            // Theme selection
             const ListTile(
               title: Text('Theme'),
               subtitle: Text('Choose your vibe'),
@@ -177,7 +176,7 @@ class SettingsScreen extends ConsumerWidget {
                 child: Column(
                   children: [
                     Text(
-                      'Open Habit v0.5.0',
+                      'Open Habit v0.6.0',
                       style: GoogleFonts.rajdhani(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,

@@ -104,7 +104,7 @@ class RecommendationCardWidget extends StatelessWidget {
                 onPressed: onAdd,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: theme.colorScheme.secondary,
-                  foregroundColor: theme.colorScheme.background,
+                  foregroundColor: theme.colorScheme.onSecondary,
                 ),
                 child: Text(
                   'Add Habit',

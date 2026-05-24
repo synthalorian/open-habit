@@ -43,17 +43,27 @@ class NeonCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry padding;
   final double borderRadius;
+  final bool neonGlow;          // extra glow for completed / one-tap items
 
   const NeonCard({
     super.key,
     required this.child,
     this.padding = const EdgeInsets.all(16),
     this.borderRadius = 20,
+    this.neonGlow = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
+    final glowLayer = neonGlow
+        ? BoxShadow(
+            color: theme.colorScheme.secondary.withValues(alpha: 0.55),
+            blurRadius: 32,
+            spreadRadius: 6,
+          )
+        : const BoxShadow(color: Colors.transparent);
 
     return Container(
       decoration: BoxDecoration(
@@ -68,6 +78,7 @@ class NeonCard extends StatelessWidget {
             blurRadius: 20,
             spreadRadius: 2,
           ),
+          glowLayer,
         ],
       ),
       child: child,
