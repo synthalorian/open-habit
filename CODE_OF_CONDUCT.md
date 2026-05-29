@@ -25,4 +25,4 @@ Instances of abusive, harassing, or otherwise unacceptable behavior may be repor
 
 ---
 
-*Part of The Neon Stack. Built with respect.* 🎹🦞
+*Part of The Neon Stack. Built with respect.* 🎹🦈

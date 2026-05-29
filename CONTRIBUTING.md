@@ -1,6 +1,6 @@
 # Contributing to open_habit
 
-First off, thank you for considering contributing! 🎹🦞
+First off, thank you for considering contributing! 🎹🦈
 
 This project follows the Apache 2.0 license. All contributions must comply with the same terms.
 
@@ -128,4 +128,4 @@ If you find a security vulnerability, please **do not** open an issue. Instead, 
 
 ---
 
-*Thank you for helping build the future of privacy. The grid needs you.* 🎹🦞
+*Thank you for helping build the future of privacy. The grid needs you.* 🎹🦈

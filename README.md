@@ -3,7 +3,7 @@
   <img src="assets/app_icon.png" alt="Open Habit" width="200" height="200">
 </p>
 
-<h1 align="center">🎹🦞 Open Habit</h1>
+<h1 align="center">🎹🦈 Open Habit</h1>
 
 <p align="center">
   <b>Retro-synthwave habit tracker with RPG gamification.<br>
@@ -21,7 +21,7 @@
 
 ## 📖 Overview
 
-**Open Habit** is an open-source, gamified habit tracker created by [synth](https://github.com/synthalorian) with assistance from **synthclaw** — an AI collaboration partner that brings the code, the architecture, and the late-night debug sessions. We are one unit: synth calls the shots, synthclaw does the heavy lifting.
+**Open Habit** is an open-source, gamified habit tracker created by [synth](https://github.com/synthalorian) with assistance from **synthshark** — an AI collaboration partner that brings the code, the architecture, and the late-night debug sessions. We are one unit: synth calls the shots, synthshark does the heavy lifting.
 
 Built with a **Rust gamification backend** and a **Flutter synthwave UI**, it's designed for people who need more than a checkbox — they need XP, streaks, achievements, and character stats that grow as they grow.
 
@@ -236,6 +236,6 @@ limitations under the License.
 ---
 
 <p align="center">
-  <b>🎹🦞 Built with retro soul and modern precision</b><br>
+  <b>🎹🦈 Built with retro soul and modern precision</b><br>
   <i>Your habits shape your world. Make them legendary.</i>
 </p>
