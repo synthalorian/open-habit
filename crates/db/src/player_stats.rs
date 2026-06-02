@@ -4,12 +4,11 @@
 //! categories awards XP to the stats. Users can customize, rename, and create
 //! their own stats.
 
-use chrono::Utc;
 use open_habit_shared::{default_stats, PlayerStat};
 use rusqlite::{params, Connection};
 use uuid::Uuid;
 
-use crate::{DBError, DBResult};
+use crate::DBResult;
 
 /// Insert or update a player stat.
 pub fn upsert_stat(conn: &Connection, stat: &PlayerStat) -> DBResult<()> {

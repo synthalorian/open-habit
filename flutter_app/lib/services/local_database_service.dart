@@ -47,7 +47,6 @@ class HabitData {
   factory HabitData.fromJson(Map<String, dynamic> json) {
     final rawName = json['name'] as String? ?? '';
       final isBad = rawName.startsWith('🚫 ');
-      final isDaily = json['is_daily'] as bool? ?? false;
       return HabitData(
         id: json['id'] as String? ?? const Uuid().v4(),
         name: isBad ? rawName.substring(2) : rawName,
@@ -709,13 +708,6 @@ class LocalDatabaseService extends ChangeNotifier {
     final base = ((totalAwarded * 0.40).floor()).clamp(4, 999);
     final bonus = (base * (_dailyAllCompleteStreak * 0.02)).floor();
     return base + bonus;
-  }
-
-  int _baseXpForStat(int total) {
-    if (total >= 100) return 100; // extreme
-    if (total >= 50) return 50;   // hard
-    if (total >= 25) return 25;   // medium
-    return 10;                     // easy — bumped from 8 so 2 daily habits show growth
   }
 
   void _awardStatXp(int statIdx, int amount) {

@@ -133,7 +133,7 @@ class ApiClient {
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode({
             'amount': amount,
-            if (source != null) 'source': source,
+            'source': source,
           }),
         )
         .timeout(ApiConfig.timeout);

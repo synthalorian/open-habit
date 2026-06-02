@@ -153,7 +153,7 @@ fn cmd_list(path: &PathBuf, all: bool) {
             habit.name,
             diff_icon,
             habit.category,
-            format!("{:?}", habit.frequency),
+            format_args!("{:?}", habit.frequency),
             last,
             habit.xp_reward,
             habit.current_streak,

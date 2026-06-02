@@ -94,7 +94,7 @@ async fn get_habit(
         .db
         .get_habit(id.to_string())
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?
-        .map(|h| JsonReq(h))
+        .map(JsonReq)
         .ok_or((StatusCode::NOT_FOUND, "Habit not found".into()))
 }
 
@@ -247,7 +247,7 @@ async fn progress_challenge(
 
     // Mutably lock engine and progress the challenge
     let mut engine = state.engine.write().unwrap();
-    let progressed = engine.progress_challenge(challenge_id, amount);
+    let _progressed = engine.progress_challenge(challenge_id, amount);
 
     // Persist all active challenges after mutation
     let challenges = engine.active_challenges();

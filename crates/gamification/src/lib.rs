@@ -325,13 +325,12 @@ impl ChallengeEngine {
 
     /// Progress a challenge by amount.
     pub fn progress_challenge(&mut self, challenge_id: uuid::Uuid, amount: u32) -> bool {
-        let completed =
-            if let Some(challenge) = self.challenges.iter_mut().find(|c| c.id == challenge_id) {
+        
+        if let Some(challenge) = self.challenges.iter_mut().find(|c| c.id == challenge_id) {
                 challenge.progress_by(amount)
             } else {
-                return false;
-            };
-        completed
+                false
+            }
     }
 
     /// Get completed challenges.
@@ -425,7 +424,7 @@ impl GamificationEngine {
             base_xp,
             bonus_xp,
             achievement_xp,
-            leveled_up: leveled_up,
+            leveled_up,
             new_streak: streak_count,
             newly_unlocked,
             challenges_completed,
@@ -585,7 +584,7 @@ mod tests {
 
     #[test]
     fn test_streak_bonus_xp() {
-        let mut manager = StreakManager::new();
+        let manager = StreakManager::new();
         assert_eq!(manager.streak_bonus_xp(2), 0); // Below first milestone
         assert_eq!(manager.streak_bonus_xp(3), 5); // 3-day milestone
         assert_eq!(manager.streak_bonus_xp(7), 15); // 7-day milestone
@@ -661,7 +660,7 @@ mod tests {
         let challenges = engine.generate_challenges(1, 1, &[], uuid::Uuid::new_v4());
         // Should produce between 3 and 5 challenges
         let count = challenges.len();
-        assert!(count >= 3 && count <= 5, "Expected 3-5 challenges, got {}", count);
+        assert!((3..=5).contains(&count), "Expected 3-5 challenges, got {}", count);
         // All challenges should have a non-empty category and be unique in id
         let categories: Vec<&str> = challenges.iter().map(|c| c.category.as_str()).collect();
         assert!(categories.iter().all(|c| !c.is_empty()));
@@ -709,7 +708,7 @@ mod tests {
         for i in 0..7 {
             let result =
                 engine.complete_habit(habit_id, t + chrono::Duration::days(i), Difficulty::Medium);
-            assert!(result.new_streak >= i as u32 + 1);
+            assert!(result.new_streak > i as u32);
         }
 
         // At streak 7, "On Fire" should have triggered by now

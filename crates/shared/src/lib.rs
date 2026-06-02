@@ -60,32 +60,26 @@ pub enum Frequency {
 
 /// Difficulty of a habit (affects XP reward).
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Default)]
 pub enum Difficulty {
+    #[default]
     Easy,
     Medium,
     Hard,
     Extreme,
 }
 
-impl Default for Difficulty {
-    fn default() -> Self {
-        Self::Easy
-    }
-}
 
 /// Status of a habit.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Default)]
 pub enum HabitStatus {
+    #[default]
     Active,
     Archived,
     Completed,
 }
 
-impl Default for HabitStatus {
-    fn default() -> Self {
-        Self::Active
-    }
-}
 
 /// Type of a gamification challenge.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -140,7 +134,7 @@ impl Habit {
         difficulty: Difficulty,
         frequency: Frequency,
     ) -> Self {
-        let xp_reward = Self::XP_RATES[difficulty as usize] as u32;
+        let xp_reward = Self::XP_RATES[difficulty as usize];
         Self {
             id: Uuid::new_v4(),
             name: name.into(),
@@ -160,7 +154,7 @@ impl Habit {
 
     /// Calculate XP reward based on difficulty.
     pub fn xp_for(difficulty: Difficulty) -> u32 {
-        Self::XP_RATES[difficulty as usize] as u32
+        Self::XP_RATES[difficulty as usize]
     }
 }
 
@@ -294,7 +288,7 @@ impl PlayerProgression {
         // Base 100, scaling: 100 * 1.5^(level-1)
         let shift = level.saturating_sub(1) as usize;
         let shift = shift.min(25);
-        let divisor = 1u32.max(1);
+        let divisor = 1;
         100 * (1u32 << shift) / divisor
     }
 
@@ -328,11 +322,7 @@ impl PlayerProgression {
             leveled_up.push(self.level);
             next_threshold = Self::xp_threshold(self.level + 1);
         }
-        self.xp_to_next = if next_threshold > self.total_xp {
-            next_threshold - self.total_xp
-        } else {
-            0
-        };
+        self.xp_to_next = next_threshold.saturating_sub(self.total_xp);
         leveled_up
     }
 }
@@ -374,11 +364,7 @@ impl PlayerStat {
             leveled = true;
             next_threshold = Self::xp_for_level(self.level + 1);
         }
-        self.xp_to_next = if next_threshold > self.xp_in_stat {
-            next_threshold - self.xp_in_stat
-        } else {
-            0
-        };
+        self.xp_to_next = next_threshold.saturating_sub(self.xp_in_stat);
         leveled
     }
 }
@@ -707,7 +693,7 @@ mod tests {
         // xp_threshold(2) = 120, xp_threshold(3) = 144
         // 250 XP: reach level 2 (120 consumed), 130 remaining < 144 → 1 level-up
         let leveled = player.add_xp(300);
-        assert!(leveled.len() >= 1);
+        assert!(!leveled.is_empty());
         assert!(player.level >= 2);
     }
 

@@ -29,12 +29,15 @@ class SettingsScreen extends ConsumerWidget {
               leading: Icon(Icons.palette_outlined),
             ),
             ...AppThemeMode.all.map((mode) {
-              final selected = mode.name == currentTheme.name;
+              // ignore: deprecated_member_use
               return RadioListTile<String>(
+                // ignore: deprecated_member_use
                 value: mode.name,
-                groupValue: selected ? mode.name : null,
+                // ignore: deprecated_member_use
+                groupValue: currentTheme.name,
                 title: Text(mode.displayName),
                 subtitle: Text(mode.description),
+                // ignore: deprecated_member_use
                 onChanged: (v) {
                   if (v == null) return;
                   ref.read(themeProvider.notifier).setTheme(mode);

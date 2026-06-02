@@ -14,7 +14,7 @@
   <img src="https://img.shields.io/badge/Rust-2024-orange?style=for-the-badge&logo=rust" alt="Rust">
   <img src="https://img.shields.io/badge/Flutter-3.4-blue?style=for-the-badge&logo=flutter" alt="Flutter">
   <img src="https://img.shields.io/badge/License-Apache_2.0-green?style=for-the-badge" alt="License">
-  <img src="https://img.shields.io/badge/Version-0.5.0-ff69b4?style=for-the-badge" alt="Version">
+  <img src="https://img.shields.io/badge/Version-0.6.0-ff69b4?style=for-the-badge" alt="Version">
 </p>
 
 ---

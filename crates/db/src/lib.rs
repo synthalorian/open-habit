@@ -614,7 +614,7 @@ impl Database {
                     })
                 },
             )
-            .map_err(|e| DBError::SQL(e))
+            .map_err(DBError::SQL)
     }
 
     pub fn record_xp(

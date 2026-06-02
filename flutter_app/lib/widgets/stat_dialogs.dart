@@ -242,9 +242,9 @@ class _StatCustomizeDialogState extends State<StatCustomizeDialog> {
         color: stat.color,
         categoryMappings: stat.categoryMappings,
       ));
-      if (context.mounted) Navigator.pop(context, true);
+      if (mounted) Navigator.pop(context, true);
     } catch (e) {
-      if (context.mounted) {
+      if (mounted) {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text('Error: $e')));
       }
@@ -266,7 +266,7 @@ class _StatCreateDialogState extends State<StatCreateDialog> {
   late TextEditingController _nameCtrl;
   String _icon = '💪';
   String _color = '#FF5500';
-  List<String> _mappedCategories = ['General'];
+  final List<String> _mappedCategories = ['General'];
   bool _saving = false;
 
   @override
@@ -446,9 +446,9 @@ class _StatCreateDialogState extends State<StatCreateDialog> {
         color: stat.color,
         categoryMappings: stat.categoryMappings,
       ));
-      if (context.mounted) Navigator.pop(context, true);
+      if (mounted) Navigator.pop(context, true);
     } catch (e) {
-      if (context.mounted) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to create: $e')),
         );
@@ -515,10 +515,6 @@ class _StatDisciplineDialogState extends State<StatDisciplineDialog> {
             child: SizedBox(height: 200, child: Center(child: CircularProgressIndicator())),
           );
         }
-
-        final selectedStat = _selectedStatId == null
-            ? null
-            : _stats.firstWhere((s) => s.id == _selectedStatId);
 
         return Dialog(
           backgroundColor: theme.colorScheme.surface,
@@ -617,9 +613,7 @@ class _StatDisciplineDialogState extends State<StatDisciplineDialog> {
                         ),
                       ),
                     );
-                  }).toList(),
-
-                  const SizedBox(height: 20),
+                  }),
 
                   // XP amount slider
                   Row(
@@ -734,9 +728,9 @@ class _StatDisciplineDialogState extends State<StatDisciplineDialog> {
             ? null
             : _noteCtrl.text.trim(),
       );
-      if (context.mounted) Navigator.pop(context, true);
+      if (mounted) Navigator.pop(context, true);
     } catch (e) {
-      if (context.mounted) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed: $e')),
         );

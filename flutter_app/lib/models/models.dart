@@ -29,12 +29,12 @@ class Habit {
   final Difficulty difficulty;
   final Frequency frequency;
   final HabitStatus status;
-  final DateTime created_at;
-  final DateTime? last_completed;
-  final int current_streak;
-  final int best_streak;
-  final int total_completions;
-  final int xp_reward;
+  final DateTime createdAt;
+  final DateTime? lastCompleted;
+  final int currentStreak;
+  final int bestStreak;
+  final int totalCompletions;
+  final int xpReward;
 
   Habit({
     required this.id,
@@ -44,12 +44,12 @@ class Habit {
     required this.difficulty,
     required this.frequency,
     required this.status,
-    required this.created_at,
-    this.last_completed,
-    required this.current_streak,
-    required this.best_streak,
-    required this.total_completions,
-    required this.xp_reward,
+    required this.createdAt,
+    this.lastCompleted,
+    required this.currentStreak,
+    required this.bestStreak,
+    required this.totalCompletions,
+    required this.xpReward,
   });
 
   /// Create a new Habit with defaults (matches Rust `Habit::new`)
@@ -66,11 +66,11 @@ class Habit {
       difficulty: difficulty,
       frequency: frequency,
       status: HabitStatus.active,
-      created_at: DateTime.now(),
-      current_streak: 0,
-      best_streak: 0,
-      total_completions: 0,
-      xp_reward: DifficultyX.DifficultyXP[difficulty.index],
+      createdAt: DateTime.now(),
+      currentStreak: 0,
+      bestStreak: 0,
+      totalCompletions: 0,
+      xpReward: DifficultyX.difficultyXp[difficulty.index],
     );
   }
 
@@ -84,14 +84,14 @@ class Habit {
       difficulty: DifficultyX.fromString(json['difficulty'] as String),
       frequency: FrequencyX.fromString(json['frequency'] as String),
       status: HabitStatusX.fromString(json['status'] as String),
-      created_at: DateTime.parse(json['created_at'] as String),
-      last_completed: json['last_completed'] == null
+      createdAt: DateTime.parse(json['created_at'] as String),
+      lastCompleted: json['last_completed'] == null
           ? null
           : DateTime.parse(json['last_completed'] as String),
-      current_streak: json['current_streak'] as int,
-      best_streak: json['best_streak'] as int,
-      total_completions: json['total_completions'] as int,
-      xp_reward: json['xp_reward'] as int,
+      currentStreak: json['current_streak'] as int,
+      bestStreak: json['best_streak'] as int,
+      totalCompletions: json['total_completions'] as int,
+      xpReward: json['xp_reward'] as int,
     );
   }
 
@@ -104,12 +104,12 @@ class Habit {
       'difficulty': _capitalize(difficulty.name),
       'frequency': _capitalize(frequency.name),
       'status': _capitalize(status.name),
-      'created_at': _formatDate(created_at),
-      'last_completed': last_completed != null ? _formatDate(last_completed!) : null,
-      'current_streak': current_streak,
-      'best_streak': best_streak,
-      'total_completions': total_completions,
-      'xp_reward': xp_reward,
+      'created_at': _formatDate(createdAt),
+      'last_completed': lastCompleted != null ? _formatDate(lastCompleted!) : null,
+      'current_streak': currentStreak,
+      'best_streak': bestStreak,
+      'total_completions': totalCompletions,
+      'xp_reward': xpReward,
     };
   }
 
@@ -122,12 +122,12 @@ class Habit {
     Difficulty? difficulty,
     Frequency? frequency,
     HabitStatus? status,
-    DateTime? created_at,
-    DateTime? last_completed,
-    int? current_streak,
-    int? best_streak,
-    int? total_completions,
-    int? xp_reward,
+    DateTime? createdAt,
+    DateTime? lastCompleted,
+    int? currentStreak,
+    int? bestStreak,
+    int? totalCompletions,
+    int? xpReward,
   }) {
     return Habit(
       id: id ?? this.id,
@@ -137,12 +137,12 @@ class Habit {
       difficulty: difficulty ?? this.difficulty,
       frequency: frequency ?? this.frequency,
       status: status ?? this.status,
-      created_at: created_at ?? this.created_at,
-      last_completed: last_completed ?? this.last_completed,
-      current_streak: current_streak ?? this.current_streak,
-      best_streak: best_streak ?? this.best_streak,
-      total_completions: total_completions ?? this.total_completions,
-      xp_reward: xp_reward ?? this.xp_reward,
+      createdAt: createdAt ?? this.createdAt,
+      lastCompleted: lastCompleted ?? this.lastCompleted,
+      currentStreak: currentStreak ?? this.currentStreak,
+      bestStreak: bestStreak ?? this.bestStreak,
+      totalCompletions: totalCompletions ?? this.totalCompletions,
+      xpReward: xpReward ?? this.xpReward,
     );
   }
 }
@@ -150,36 +150,36 @@ class Habit {
 // ─── Streak ────────────────────────────────────────────────────────────────
 
 class Streak {
-  final String habit_id;
+  final String habitId;
   final int count;
-  final DateTime started_at;
-  final DateTime last_date;
-  final bool is_active;
+  final DateTime startedAt;
+  final DateTime lastDate;
+  final bool isActive;
 
   Streak({
-    required this.habit_id,
+    required this.habitId,
     required this.count,
-    required this.started_at,
-    required this.last_date,
-    required this.is_active,
+    required this.startedAt,
+    required this.lastDate,
+    required this.isActive,
   });
 
   factory Streak.fromJson(Map<String, dynamic> json) {
     return Streak(
-      habit_id: json['habit_id'] as String,
+      habitId: json['habit_id'] as String,
       count: json['count'] as int,
-      started_at: DateTime.parse(json['started_at'] as String),
-      last_date: DateTime.parse(json['last_date'] as String),
-      is_active: json['is_active'] as bool,
+      startedAt: DateTime.parse(json['started_at'] as String),
+      lastDate: DateTime.parse(json['last_date'] as String),
+      isActive: json['is_active'] as bool,
     );
   }
 
   Map<String, dynamic> toJson() => {
-        'habit_id': habit_id,
+        'habit_id': habitId,
         'count': count,
-        'started_at': started_at.toIso8601String(),
-        'last_date': last_date.toIso8601String(),
-        'is_active': is_active,
+        'started_at': startedAt.toIso8601String(),
+        'last_date': lastDate.toIso8601String(),
+        'is_active': isActive,
       };
 }
 
@@ -190,22 +190,22 @@ class Achievement {
   final String title;
   final String description;
   final String icon;
-  final int xp_reward;
-  final String? condition_type;
-  final int? condition_value;
+  final int xpReward;
+  final String? conditionType;
+  final int? conditionValue;
   final bool unlocked;
-  final DateTime? unlocked_at;
+  final DateTime? unlockedAt;
 
   Achievement({
     required this.id,
     required this.title,
     required this.description,
     required this.icon,
-    required this.xp_reward,
-    this.condition_type,
-    this.condition_value,
+    required this.xpReward,
+    this.conditionType,
+    this.conditionValue,
     this.unlocked = false,
-    this.unlocked_at,
+    this.unlockedAt,
   });
 
   factory Achievement.fromJson(Map<String, dynamic> json) {
@@ -214,11 +214,11 @@ class Achievement {
       title: json['title'] as String,
       description: json['description'] as String,
       icon: json['icon'] as String,
-      xp_reward: json['xp_reward'] as int,
-      condition_type: json['condition_type'] as String?,
-      condition_value: json['condition_value'] as int?,
+      xpReward: json['xp_reward'] as int,
+      conditionType: json['condition_type'] as String?,
+      conditionValue: json['condition_value'] as int?,
       unlocked: json['unlocked'] as bool? ?? false,
-      unlocked_at: json['unlocked_at'] == null
+      unlockedAt: json['unlocked_at'] == null
           ? null
           : DateTime.parse(json['unlocked_at'] as String),
     );
@@ -229,11 +229,11 @@ class Achievement {
         'title': title,
         'description': description,
         'icon': icon,
-        'xp_reward': xp_reward,
-        'condition_type': condition_type,
-        'condition_value': condition_value,
+        'xp_reward': xpReward,
+        'condition_type': conditionType,
+        'condition_value': conditionValue,
         'unlocked': unlocked,
-        'unlocked_at': unlocked_at?.toIso8601String(),
+        'unlocked_at': unlockedAt?.toIso8601String(),
       };
 }
 
@@ -245,10 +245,10 @@ class Challenge {
   final String description;
   final ChallengeType type;
   final int target;
-  final int xp_reward;
+  final int xpReward;
   final ChallengeStatus status;
   final int progress;
-  final DateTime started_at;
+  final DateTime startedAt;
   final DateTime? deadline;
 
   Challenge({
@@ -257,10 +257,10 @@ class Challenge {
     required this.description,
     required this.type,
     required this.target,
-    required this.xp_reward,
+    required this.xpReward,
     required this.status,
     required this.progress,
-    required this.started_at,
+    required this.startedAt,
     this.deadline,
   });
 
@@ -271,10 +271,10 @@ class Challenge {
       description: json['description'] as String,
       type: ChallengeTypeX.fromString(json['type'] as String),
       target: json['target'] as int,
-      xp_reward: json['xp_reward'] as int,
+      xpReward: json['xp_reward'] as int,
       status: ChallengeStatusX.fromString(json['status'] as String),
       progress: json['progress'] as int,
-      started_at: DateTime.parse(json['started_at'] as String),
+      startedAt: DateTime.parse(json['started_at'] as String),
       deadline:
           json['deadline'] == null ? null : DateTime.parse(json['deadline'] as String),
     );
@@ -286,10 +286,10 @@ class Challenge {
         'description': description,
         'type': type.toString().split('.').last,
         'target': target,
-        'xp_reward': xp_reward,
+        'xp_reward': xpReward,
         'status': status.toString().split('.').last,
         'progress': progress,
-        'started_at': started_at.toIso8601String(),
+        'started_at': startedAt.toIso8601String(),
         'deadline': deadline?.toIso8601String(),
       };
 }
@@ -388,7 +388,7 @@ extension DifficultyX on Difficulty {
     }
   }
 
-  static const List<int> DifficultyXP = [10, 25, 50, 100];
+  static const List<int> difficultyXp = [10, 25, 50, 100];
 }
 
 extension FrequencyX on Frequency {

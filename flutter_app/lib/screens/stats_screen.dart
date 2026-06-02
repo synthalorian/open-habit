@@ -233,7 +233,7 @@ class _XpTimelineChart extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     // Show a simple bar chart: level milestones with current XP highlighted
-    final levels = [1, 2, 3, 4, 5, level].toSet().toList()..sort();
+    final levels = {1, 2, 3, 4, 5, level}.toList()..sort();
     final maxXp = levels.last * 100;
 
     return BarChart(
