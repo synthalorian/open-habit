@@ -42,7 +42,7 @@ dependencies:
   url_launcher: ^6.3.2
   uuid: ^4.3.3
   fl_chart: ^0.70.2
-  home_widget: 0.7.0
+  # home_widget: 0.7.0 — removed due to jni_flutter build failure
 
 dev_dependencies:
   flutter_test:
