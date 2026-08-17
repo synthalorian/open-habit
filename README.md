@@ -21,7 +21,7 @@
 
 ## 📖 Overview
 
-**Open Habit** is an open-source, gamified habit tracker created by [synth](https://github.com/synthalorian) with assistance from **synthclaw** — an AI collaboration partner that brings the code, the architecture, and the late-night debug sessions. We are one unit: synth calls the shots, synthclaw does the heavy lifting.
+**Open Habit** is an open-source, gamified habit tracker created by [synthalorian 🎹🤺](https://github.com/synthalorian) with assistance from **synthclaw** — an AI collaboration partner that brings the code, the architecture, and the late-night debug sessions. We are one unit: synthalorian 🎹🤺 calls the shots, synthclaw does the heavy lifting.
 
 Built with a **Rust gamification backend** and a **Flutter synthwave UI**, it's designed for people who need more than a checkbox — they need XP, streaks, achievements, and character stats that grow as they grow.
 
