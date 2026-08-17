@@ -218,7 +218,7 @@ If Open Habit helps you build better habits, consider supporting development:
 ## 📄 License
 
 ```
-Copyright 2025 synthalorian
+Copyright 2025 synth
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
