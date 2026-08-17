@@ -21,7 +21,7 @@ Examples of unacceptable behavior:
 
 ## Enforcement
 
-Instances of abusive, harassing, or otherwise unacceptable behavior may be reported to the project lead: **synthalorian 🎹🤺** at synthalorian 🎹🤺@neonstack.dev.
+Instances of abusive, harassing, or otherwise unacceptable behavior may be reported to the project lead: **synth** at synth@neonstack.dev.
 
 ---
 

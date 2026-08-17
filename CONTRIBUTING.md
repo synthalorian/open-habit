@@ -21,7 +21,7 @@ This project follows the Apache 2.0 license. All contributions must comply with 
 ### Development Setup
 ```bash
 # Clone and enter
-git clone https://github.com/synthalorian 🎹🤺/open_habit.git
+git clone https://github.com/synth/open_habit.git
 cd open_habit
 
 # Build the Rust backend
@@ -124,7 +124,7 @@ Includes sleep stages, heart rate, and resting heart rate.
 
 ## Security
 
-If you find a security vulnerability, please **do not** open an issue. Instead, email synthalorian 🎹🤺 directly or open a private security advisory on GitHub.
+If you find a security vulnerability, please **do not** open an issue. Instead, email synth directly or open a private security advisory on GitHub.
 
 ---
 

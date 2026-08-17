@@ -6,9 +6,9 @@ resolver = "2"
 version = "0.1.0"
 edition = "2024"
 license = "Apache-2.0"
-authors = ["synthalorian 🎹🤺 <synthalorian 🎹🤺@neonstack.dev>"]
-repository = "https://github.com/synthalorian 🎹🤺/open_habit"
-homepage = "https://github.com/synthalorian 🎹🤺/open_habit#readme"
+authors = ["synth <synth@neonstack.dev>"]
+repository = "https://github.com/synth/open_habit"
+homepage = "https://github.com/synth/open_habit#readme"
 keywords = ["habit", "gamification", "tracker", "xp", "streak"]
 categories = ["game-engines", "data-structures"]
 
