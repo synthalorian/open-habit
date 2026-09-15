@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'core/theme/app_theme.dart';
 import 'providers/theme_provider.dart';
 import 'screens/home_screen.dart' as home;
@@ -12,8 +11,6 @@ Future<void> main() async {
   // Initialize database
   final db = LocalDatabaseService();
   await db.init();
-  final prefs = await SharedPreferences.getInstance();
-  final savedTheme = prefs.getString('theme_mode') ?? 'synthwave';
 
   runApp(
     ProviderScope(
