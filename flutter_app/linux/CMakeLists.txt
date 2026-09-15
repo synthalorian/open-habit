@@ -7,7 +7,7 @@ project(runner LANGUAGES CXX)
 set(BINARY_NAME "open_habit")
 # The unique GTK application identifier for this application. See:
 # https://wiki.gnome.org/HowDoI/ChooseApplicationID
-set(APPLICATION_ID "com.synthwave.open_habit")
+set(APPLICATION_ID "com.synthalorian.open_habit")
 
 # Explicitly opt in to modern CMake behaviors to avoid warnings with recent
 # versions of CMake.
@@ -128,6 +128,6 @@ if(NOT CMAKE_BUILD_TYPE MATCHES "Debug")
 endif()
 
 # Install app icons (freedesktop.org hierarchy)
-install(DIRECTORY "${CMAKE_SOURCE_DIR}/linux/assets/icons/"
+install(DIRECTORY "${CMAKE_SOURCE_DIR}/assets/icons/"
   DESTINATION "${CMAKE_INSTALL_PREFIX}/share/icons"
   COMPONENT Runtime)

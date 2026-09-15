@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.synthwave.open_habit"
+    namespace = "com.synthalorian.open_habit"
     compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
@@ -21,7 +21,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.synthwave.open_habit"
+        applicationId = "com.synthalorian.open_habit"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion

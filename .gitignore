@@ -31,3 +31,4 @@ Thumbs.db
 
 # Large generated assets
 **/*.generated.*
+.dart_tool/

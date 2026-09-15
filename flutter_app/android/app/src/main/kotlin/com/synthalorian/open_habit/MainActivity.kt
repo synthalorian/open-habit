@@ -1,4 +1,4 @@
-package com.synthwave.open_habit
+package com.synthalorian.open_habit
 
 import io.flutter.embedding.android.FlutterActivity
 
