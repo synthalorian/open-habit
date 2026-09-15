@@ -67,12 +67,12 @@ jobs:
 
       - name: Install dependencies
         run: flutter pub get
-        working-directory: ./flutter
+        working-directory: ./flutter_app
 
       - name: Run Flutter tests
         run: flutter test
-        working-directory: ./flutter
+        working-directory: ./flutter_app
 
       - name: Analyze
         run: flutter analyze
-        working-directory: ./flutter
+        working-directory: ./flutter_app
