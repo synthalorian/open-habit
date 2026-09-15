@@ -8,7 +8,7 @@ use chrono::Utc;
 use open_habit::GamificationEngine;
 use open_habit_db::DatabaseClient;
 use open_habit_shared::*;
-use open_habit_shared::{default_stats, PlayerStat};
+use open_habit_shared::{PlayerStat, default_stats};
 use std::sync::{Arc, RwLock};
 use tracing_subscriber::filter::Directive;
 use uuid::Uuid;
@@ -30,8 +30,7 @@ async fn main() {
         .init();
 
     let db = Arc::new(
-        DatabaseClient::new("data/open_habit.db".to_string())
-            .expect("Failed to create DB client"),
+        DatabaseClient::new("data/open_habit.db".to_string()).expect("Failed to create DB client"),
     );
     let engine = Arc::new(RwLock::new(GamificationEngine::new()));
 
@@ -103,14 +102,27 @@ async fn update_habit(
     Path(id): Path<Uuid>,
     JsonReq(update): JsonReq<serde_json::Value>,
 ) -> Result<JsonReq<serde_json::Value>, (StatusCode, String)> {
-    let name = update.get("name").and_then(|v| v.as_str()).map(|s| s.to_string());
-    let description = update.get("description").and_then(|v| v.as_str()).map(|s| s.to_string());
-    let status = update.get("status").and_then(|v| v.as_str()).map(|s| s.to_string());
+    let name = update
+        .get("name")
+        .and_then(|v| v.as_str())
+        .map(|s| s.to_string());
+    let description = update
+        .get("description")
+        .and_then(|v| v.as_str())
+        .map(|s| s.to_string());
+    let status = update
+        .get("status")
+        .and_then(|v| v.as_str())
+        .map(|s| s.to_string());
 
-    state.db.update_habit(id.to_string(), name, description, status)
+    state
+        .db
+        .update_habit(id.to_string(), name, description, status)
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
 
-    let habit = state.db.get_habit(id.to_string())
+    let habit = state
+        .db
+        .get_habit(id.to_string())
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
 
     Ok(JsonReq(
@@ -123,7 +135,9 @@ async fn delete_habit(
     State(state): State<AppState>,
     Path(id): Path<Uuid>,
 ) -> Result<StatusCode, (StatusCode, String)> {
-    state.db.delete_habit(id.to_string())
+    state
+        .db
+        .delete_habit(id.to_string())
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
     Ok(StatusCode::NO_CONTENT)
 }
@@ -221,7 +235,12 @@ async fn record_xp(
 }
 
 async fn list_achievements(State(state): State<AppState>) -> JsonReq<Vec<Achievement>> {
-    JsonReq(state.db.list_achievements().expect("Failed to list achievements"))
+    JsonReq(
+        state
+            .db
+            .list_achievements()
+            .expect("Failed to list achievements"),
+    )
 }
 
 async fn list_streaks(State(state): State<AppState>) -> JsonReq<Vec<open_habit_shared::Streak>> {
@@ -231,7 +250,12 @@ async fn list_streaks(State(state): State<AppState>) -> JsonReq<Vec<open_habit_s
 async fn list_challenges(
     State(state): State<AppState>,
 ) -> JsonReq<Vec<open_habit_shared::Challenge>> {
-    JsonReq(state.db.list_challenges().expect("Failed to list challenges"))
+    JsonReq(
+        state
+            .db
+            .list_challenges()
+            .expect("Failed to list challenges"),
+    )
 }
 
 async fn progress_challenge(
@@ -315,8 +339,13 @@ async fn update_stat(
     JsonReq(payload): JsonReq<serde_json::Value>,
 ) -> Result<JsonReq<PlayerStat>, (StatusCode, String)> {
     // Fetch existing stat, merge updates, save
-    let stats = state.db.list_stats().map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
-    let existing = stats.into_iter().find(|s| s.id == id)
+    let stats = state
+        .db
+        .list_stats()
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+    let existing = stats
+        .into_iter()
+        .find(|s| s.id == id)
         .ok_or((StatusCode::NOT_FOUND, "Stat not found".into()))?;
 
     let mut updated = existing.clone();
@@ -333,7 +362,9 @@ async fn update_stat(
         updated.category_mappings = mappings.to_string();
     }
 
-    state.db.upsert_stat(&updated)
+    state
+        .db
+        .upsert_stat(&updated)
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
     Ok(JsonReq(updated))
 }
@@ -342,7 +373,9 @@ async fn delete_stat(
     State(state): State<AppState>,
     Path(id): Path<Uuid>,
 ) -> Result<StatusCode, (StatusCode, String)> {
-    state.db.delete_stat(id.to_string())
+    state
+        .db
+        .delete_stat(id.to_string())
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
     Ok(StatusCode::NO_CONTENT)
 }

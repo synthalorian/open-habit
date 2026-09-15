@@ -194,7 +194,10 @@ impl DatabaseClient {
                     DbCommand::SaveStreak { streak, respond } => {
                         respond.send(db.save_streak(&streak)).ok();
                     }
-                    DbCommand::SaveChallenges { challenges, respond } => {
+                    DbCommand::SaveChallenges {
+                        challenges,
+                        respond,
+                    } => {
                         respond.send(db.save_challenges(&challenges)).ok();
                     }
                     DbCommand::ListStats { respond } => {
@@ -206,8 +209,14 @@ impl DatabaseClient {
                     DbCommand::DeleteStat { id, respond } => {
                         respond.send(db.delete_stat(&id)).ok();
                     }
-                    DbCommand::AwardStatXp { habit_category, xp_amount, respond } => {
-                        respond.send(db.award_stat_xp(&habit_category, xp_amount)).ok();
+                    DbCommand::AwardStatXp {
+                        habit_category,
+                        xp_amount,
+                        respond,
+                    } => {
+                        respond
+                            .send(db.award_stat_xp(&habit_category, xp_amount))
+                            .ok();
                     }
                 }
             }
@@ -333,16 +342,17 @@ impl DatabaseClient {
         let challenges = challenges.to_vec();
         let (respond, recv) = mpsc::channel();
         self.sender
-            .send(DbCommand::SaveChallenges { challenges, respond })
+            .send(DbCommand::SaveChallenges {
+                challenges,
+                respond,
+            })
             .ok();
         recv.recv().unwrap()
     }
 
     pub fn list_stats(&self) -> DBResult<Vec<PlayerStat>> {
         let (respond, recv) = mpsc::channel();
-        self.sender
-            .send(DbCommand::ListStats { respond })
-            .ok();
+        self.sender.send(DbCommand::ListStats { respond }).ok();
         recv.recv().unwrap()
     }
 
@@ -357,9 +367,7 @@ impl DatabaseClient {
 
     pub fn delete_stat(&self, id: String) -> DBResult<()> {
         let (respond, recv) = mpsc::channel();
-        self.sender
-            .send(DbCommand::DeleteStat { id, respond })
-            .ok();
+        self.sender.send(DbCommand::DeleteStat { id, respond }).ok();
         recv.recv().unwrap()
     }
 
@@ -367,7 +375,11 @@ impl DatabaseClient {
         let habit_category = habit_category.to_string();
         let (respond, recv) = mpsc::channel();
         self.sender
-            .send(DbCommand::AwardStatXp { habit_category, xp_amount, respond })
+            .send(DbCommand::AwardStatXp {
+                habit_category,
+                xp_amount,
+                respond,
+            })
             .ok();
         recv.recv().unwrap()
     }
@@ -950,8 +962,8 @@ impl Database {
         let all_stats = player_stats::list_stats(&self.conn)?;
         let mut updated = Vec::new();
         for mut stat in all_stats {
-            let mappings: Vec<String> = serde_json::from_str(&stat.category_mappings)
-                .unwrap_or_default();
+            let mappings: Vec<String> =
+                serde_json::from_str(&stat.category_mappings).unwrap_or_default();
             if mappings.iter().any(|c| c == habit_category) {
                 stat.add_xp(xp_amount);
                 player_stats::upsert_stat(&self.conn, &stat)?;

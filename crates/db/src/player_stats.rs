@@ -4,8 +4,8 @@
 //! categories awards XP to the stats. Users can customize, rename, and create
 //! their own stats.
 
-use open_habit_shared::{default_stats, PlayerStat};
-use rusqlite::{params, Connection};
+use open_habit_shared::{PlayerStat, default_stats};
+use rusqlite::{Connection, params};
 use uuid::Uuid;
 
 use crate::DBResult;

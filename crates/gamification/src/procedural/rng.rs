@@ -1,6 +1,6 @@
 use chrono::NaiveDate;
-use rand::{SeedableRng, Rng, seq::SliceRandom};
 use rand::rngs::StdRng;
+use rand::{Rng, SeedableRng, seq::SliceRandom};
 use std::hash::{DefaultHasher, Hasher};
 use uuid::Uuid;
 

@@ -301,8 +301,13 @@ impl ChallengeEngine {
 
         // Regenerate if this is a new day
         if self.last_generated != Some(today) {
-            self.challenges = procedural::Engine::new()
-                .generate_daily(today, level, total_habits, _best_streaks, Some(user_id));
+            self.challenges = procedural::Engine::new().generate_daily(
+                today,
+                level,
+                total_habits,
+                _best_streaks,
+                Some(user_id),
+            );
             self.last_generated = Some(today);
         }
 
@@ -325,12 +330,11 @@ impl ChallengeEngine {
 
     /// Progress a challenge by amount.
     pub fn progress_challenge(&mut self, challenge_id: uuid::Uuid, amount: u32) -> bool {
-        
         if let Some(challenge) = self.challenges.iter_mut().find(|c| c.id == challenge_id) {
-                challenge.progress_by(amount)
-            } else {
-                false
-            }
+            challenge.progress_by(amount)
+        } else {
+            false
+        }
     }
 
     /// Get completed challenges.
@@ -340,7 +344,6 @@ impl ChallengeEngine {
             .filter(|c| c.status == ChallengeStatus::Completed)
             .collect()
     }
-
 }
 
 // ─── Main Gamification Engine ─────────────────────────────────────────
@@ -368,7 +371,6 @@ impl GamificationEngine {
             challenges: ChallengeEngine::new(),
         }
     }
-
 
     /// Set the achievements list (e.g., loaded from persistent storage).
     pub fn set_achievements(&mut self, achievements: Vec<Achievement>) {
@@ -472,8 +474,12 @@ impl GamificationEngine {
         best_streaks: &[u32],
         user_id: uuid::Uuid,
     ) -> Vec<Challenge> {
-        self.challenges
-            .generate_challenges(total_habits, self.xp.progression().level, best_streaks, user_id)
+        self.challenges.generate_challenges(
+            total_habits,
+            self.xp.progression().level,
+            best_streaks,
+            user_id,
+        )
     }
 
     /// Progress a challenge.
@@ -660,7 +666,11 @@ mod tests {
         let challenges = engine.generate_challenges(1, 1, &[], uuid::Uuid::new_v4());
         // Should produce between 3 and 5 challenges
         let count = challenges.len();
-        assert!((3..=5).contains(&count), "Expected 3-5 challenges, got {}", count);
+        assert!(
+            (3..=5).contains(&count),
+            "Expected 3-5 challenges, got {}",
+            count
+        );
         // All challenges should have a non-empty category and be unique in id
         let categories: Vec<&str> = challenges.iter().map(|c| c.category.as_str()).collect();
         assert!(categories.iter().all(|c| !c.is_empty()));

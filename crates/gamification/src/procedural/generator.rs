@@ -1,17 +1,15 @@
 use crate::procedural::rng::SeededRng;
-use open_habit_shared::{Challenge, ChallengeType, Difficulty};
 use chrono::NaiveDate;
-
+use open_habit_shared::{Challenge, ChallengeType, Difficulty};
 
 /// Determine number of daily challenges based on player level.
 fn generate_count(level: u32) -> usize {
     match level {
-        1..=3 => 3,   // starter: 3 challenges
-        4..=7 => 4,   // mid: 4 challenges
-        _ => 5,       // high level: 5 challenges
+        1..=3 => 3, // starter: 3 challenges
+        4..=7 => 4, // mid: 4 challenges
+        _ => 5,     // high level: 5 challenges
     }
 }
-
 
 /// Challenge template with flexible target scaling.
 #[derive(Debug, Clone)]
@@ -64,7 +62,6 @@ static TEMPLATES: &[Template] = &[
         max_target: 1,
         _difficulty_hint: Difficulty::Easy,
     },
-
     // ── Mental ─────────────────────────────────────────────────────────
     Template {
         title: "Reading Session",
@@ -96,7 +93,6 @@ static TEMPLATES: &[Template] = &[
         max_target: 30,
         _difficulty_hint: Difficulty::Medium,
     },
-
     // ── Social ──────────────────────────────────────────────────────────
     Template {
         title: "Reconnect",
@@ -118,7 +114,6 @@ static TEMPLATES: &[Template] = &[
         max_target: 1,
         _difficulty_hint: Difficulty::Easy,
     },
-
     // ── Creative ────────────────────────────────────────────────────────
     Template {
         title: "Free Write",
@@ -140,7 +135,6 @@ static TEMPLATES: &[Template] = &[
         max_target: 3,
         _difficulty_hint: Difficulty::Easy,
     },
-
     // ── Health ──────────────────────────────────────────────────────────
     Template {
         title: "Hydrate",
@@ -162,7 +156,6 @@ static TEMPLATES: &[Template] = &[
         max_target: 1,
         _difficulty_hint: Difficulty::Easy,
     },
-
     // ── Weird ───────────────────────────────────────────────────────────
     Template {
         title: "Digital Detox Hour",
@@ -194,13 +187,13 @@ pub fn build_challenge_from_template(
     date: NaiveDate,
 ) -> Challenge {
     // Scale target with level: base * multiplier * (1 + level * 0.05)
-    let mut scaled = (template.base_target as f32
-        * template.level_multiplier
-        * (1.0 + level as f32 * 0.05))
-        .round() as u32;
+    let mut scaled =
+        (template.base_target as f32 * template.level_multiplier * (1.0 + level as f32 * 0.05))
+            .round() as u32;
     // Add some randomness (±10%)
     let variance = (scaled as f32 * 0.1).round() as i32;
-    scaled = (scaled as i32 + rng.gen_range(-variance, variance + 1)).max(template.min_target as i32) as u32;
+    scaled = (scaled as i32 + rng.gen_range(-variance, variance + 1))
+        .max(template.min_target as i32) as u32;
     scaled = scaled.min(template.max_target);
 
     let mut challenge = Challenge::with_category(

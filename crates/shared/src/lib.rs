@@ -59,8 +59,7 @@ pub enum Frequency {
 }
 
 /// Difficulty of a habit (affects XP reward).
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
-#[derive(Default)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Default)]
 pub enum Difficulty {
     #[default]
     Easy,
@@ -69,17 +68,14 @@ pub enum Difficulty {
     Extreme,
 }
 
-
 /// Status of a habit.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-#[derive(Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
 pub enum HabitStatus {
     #[default]
     Active,
     Archived,
     Completed,
 }
-
 
 /// Type of a gamification challenge.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -339,8 +335,8 @@ pub struct PlayerStat {
     pub level: u32,
     pub xp_in_stat: u32,
     pub xp_to_next: u32,
-    pub icon: String,    // emoji or unicode codepoint reference
-    pub color: String,   // hex color like "#FF9B71"
+    pub icon: String,  // emoji or unicode codepoint reference
+    pub color: String, // hex color like "#FF9B71"
     /// JSON array of habit category strings that feed into this stat
     pub category_mappings: String,
     pub created_at: chrono::NaiveDate,
@@ -489,7 +485,13 @@ impl Challenge {
         challenge_type: ChallengeType,
         xp_reward: u32,
     ) -> Self {
-        Self::with_category(title, description, challenge_type, xp_reward, "general".to_string())
+        Self::with_category(
+            title,
+            description,
+            challenge_type,
+            xp_reward,
+            "general".to_string(),
+        )
     }
 
     pub fn with_category(

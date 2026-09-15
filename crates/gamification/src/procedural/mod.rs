@@ -2,8 +2,8 @@
 //!
 //! Seeded PRNG for deterministic daily content.
 
-pub mod rng;
 pub mod generator;
+pub mod rng;
 // pub mod events; // TODO: implement random events
 // pub mod quests; // TODO: implement quest chains
 
