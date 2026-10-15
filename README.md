@@ -1,3 +1,5 @@
+![open-habit](.github/preview.png)
+
 
 <p align="center">
   <img src="assets/app_icon.png" alt="Open Habit" width="200" height="200">
