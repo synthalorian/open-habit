@@ -17,7 +17,7 @@ open_habit_db = { path = "../db" }
 open_habit = { path = "../gamification" }
 serde = { workspace = true }
 serde_json = { workspace = true }
-axum = { version = "0.7", features = ["json"] }
+axum = { version = "0.8", features = ["json"] }
 tokio = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
