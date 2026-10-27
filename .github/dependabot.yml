@@ -20,14 +20,23 @@ updates:
           - "minor"
           - "patch"
   - package-ecosystem: "cargo"
-    directories:
-      - "/"
-      - "/crates/cli"
-      - "/crates/db"
-      - "/crates/gamification"
-      - "/crates/server"
-      - "/crates/shared"
-      - "/flutter_app/rust"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      cargo-minor-patch:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+  - package-ecosystem: "cargo"
+    directory: "/flutter_app/rust"
     schedule:
       interval: "weekly"
       day: "monday"
