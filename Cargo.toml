@@ -18,7 +18,7 @@ open_habit_shared = { path = "crates/shared" }
 tokio = { version = "1", features = ["full"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-rusqlite = { version = "0.32", features = ["bundled"] }
+rusqlite = { version = "0.40", features = ["bundled"] }
 ring = "0.17"
 rand = "0.8"
 thiserror = "2"
