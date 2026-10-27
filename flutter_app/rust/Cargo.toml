@@ -10,7 +10,7 @@ description = "Open Habit — Rust backend embedded in Flutter via flutter_rust_
 crate-type = ["cdylib", "staticlib"]
 
 [dependencies]
-flutter_rust_bridge = "=2.12.0"
+flutter_rust_bridge = "=2.13.0"
 
 # Serialization
 serde = { version = "1", features = ["derive"] }
