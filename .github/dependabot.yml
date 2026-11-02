@@ -1,87 +1,115 @@
-# Dependabot version updates run weekly (Mondays). Minor and patch updates are grouped into one
-# pull request per ecosystem; major updates stay separate. Security updates are raised by
-# Dependabot as usual and are not affected by these settings.
 version: 2
 updates:
-  - package-ecosystem: "github-actions"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-    open-pull-requests-limit: 5
-    commit-message:
-      prefix: "chore(deps)"
-    groups:
-      github-actions-minor-patch:
-        applies-to: version-updates
-        patterns:
-          - "*"
-        update-types:
-          - "minor"
-          - "patch"
-  - package-ecosystem: "cargo"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-    open-pull-requests-limit: 5
-    commit-message:
-      prefix: "chore(deps)"
-    groups:
-      cargo-minor-patch:
-        applies-to: version-updates
-        patterns:
-          - "*"
-        update-types:
-          - "minor"
-          - "patch"
-  - package-ecosystem: "cargo"
-    directory: "/flutter_app/rust"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-    open-pull-requests-limit: 5
-    commit-message:
-      prefix: "chore(deps)"
-    groups:
-      cargo-minor-patch:
-        applies-to: version-updates
-        patterns:
-          - "*"
-        update-types:
-          - "minor"
-          - "patch"
-  - package-ecosystem: "gradle"
-    directory: "/flutter_app/android"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-    open-pull-requests-limit: 5
-    commit-message:
-      prefix: "chore(deps)"
-    groups:
-      gradle-minor-patch:
-        applies-to: version-updates
-        patterns:
-          - "*"
-        update-types:
-          - "minor"
-          - "patch"
-  - package-ecosystem: "pub"
-    directories:
-      - "/flutter"
-      - "/flutter_app"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-    open-pull-requests-limit: 5
-    commit-message:
-      prefix: "chore(deps)"
-    groups:
-      pub-minor-patch:
-        applies-to: version-updates
-        patterns:
-          - "*"
-        update-types:
-          - "minor"
-          - "patch"
+- package-ecosystem: github-actions
+  directory: /
+  schedule:
+    day: monday
+    interval: weekly
+  open-pull-requests-limit: 5
+  groups:
+    github-actions-minor-patch:
+      patterns:
+      - "*"
+      update-types:
+      - minor
+      - patch
+  ignore:
+  - dependency-name: "*"
+    update-types:
+    - "version-update:semver-major"
+  commit-message:
+    prefix: chore(deps)
+- package-ecosystem: cargo
+  directory: /
+  schedule:
+    day: monday
+    interval: weekly
+  open-pull-requests-limit: 5
+  groups:
+    cargo-minor-patch-root:
+      patterns:
+      - "*"
+      update-types:
+      - minor
+      - patch
+  ignore:
+  - dependency-name: "*"
+    update-types:
+    - "version-update:semver-major"
+  commit-message:
+    prefix: chore(deps)
+- package-ecosystem: cargo
+  directory: /flutter_app/rust
+  schedule:
+    day: monday
+    interval: weekly
+  open-pull-requests-limit: 5
+  groups:
+    cargo-minor-patch-flutter_app-rust:
+      patterns:
+      - "*"
+      update-types:
+      - minor
+      - patch
+  ignore:
+  - dependency-name: "*"
+    update-types:
+    - "version-update:semver-major"
+  commit-message:
+    prefix: chore(deps)
+- package-ecosystem: gradle
+  directory: /flutter_app/android
+  schedule:
+    day: monday
+    interval: weekly
+  open-pull-requests-limit: 5
+  groups:
+    gradle-minor-patch-flutter_app-android:
+      patterns:
+      - "*"
+      update-types:
+      - minor
+      - patch
+  ignore:
+  - dependency-name: "*"
+    update-types:
+    - "version-update:semver-major"
+  commit-message:
+    prefix: chore(deps)
+- package-ecosystem: pub
+  directories:
+  - /flutter
+  - /flutter_app
+  schedule:
+    day: monday
+    interval: weekly
+  open-pull-requests-limit: 5
+  groups:
+    pub-minor-patch:
+      patterns:
+      - "*"
+      update-types:
+      - minor
+      - patch
+  ignore:
+  - dependency-name: "*"
+    update-types:
+    - "version-update:semver-major"
+  commit-message:
+    prefix: chore(deps)
+- package-ecosystem: gradle
+  directory: /flutter_app/android/app
+  schedule:
+    interval: weekly
+  open-pull-requests-limit: 5
+  groups:
+    gradle-minor-patch-flutter_app-android-app:
+      patterns:
+      - "*"
+      update-types:
+      - minor
+      - patch
+  ignore:
+  - dependency-name: "*"
+    update-types:
+    - "version-update:semver-major"
