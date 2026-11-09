@@ -38,9 +38,9 @@ dependencies:
   go_router: ^17.2.3
   flutter_animate: ^4.5.2
   google_fonts: ^8.1.0
-  shared_preferences: ^2.5.5
-  url_launcher: ^6.3.2
-  uuid: ^4.3.3
+  shared_preferences: ^2.5.6
+  url_launcher: ^6.3.3
+  uuid: ^4.6.0
   fl_chart: ^0.70.2
   # home_widget: 0.7.0 — removed due to jni_flutter build failure
 
